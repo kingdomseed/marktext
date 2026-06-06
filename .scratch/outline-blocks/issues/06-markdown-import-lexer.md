@@ -1,6 +1,6 @@
 # Markdown import lexer and precedence rules
 
-**Status:** ready-for-agent  
+**Status:** in-progress  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-31, US-32, US-33, US-34, US-35, US-36, US-37, US-41
 
@@ -38,11 +38,11 @@ Import structural outline markers into `outline-item` blocks when preference is 
 
 ## Acceptance criteria
 
-- [ ] All TDD slices pass
-- [ ] Lexer outline rules registered before indented `code` rule when pref on
-- [ ] `outline_item` tokens produce `outline-item` + child `p` block tree
-- [ ] Precedence table matches AR-3
-- [ ] `pnpm run lint` and `pnpm run test` pass
+- [x] All TDD slices pass
+- [x] Lexer outline rules registered before indented `code` rule when pref on
+- [x] `outline_item` tokens produce `outline-item` + child `p` block tree
+- [x] Precedence table matches AR-3
+- [x] `pnpm run lint` and `pnpm run test` pass
 
 ## Blocked by
 

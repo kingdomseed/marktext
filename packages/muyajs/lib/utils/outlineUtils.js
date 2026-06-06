@@ -253,6 +253,162 @@ export const getOutlineRenderMeta = (item, blocks, listIndentation) => {
   }
 }
 
+const OUTLINE_GROUP_START = /^<!-- mt:outline-group-start -->(?:\n|$)/
+const OUTLINE_ITEM_LINE =
+  /^([ ]*)((?:[IVXLCDM]+\.|[A-Z]+\.|\d+\.|[a-z]+\.|[ivxlcdm]+\.|\(\d+\)|\([a-z]+\)))(?:[ \t]+([^\n]*?))?(?:\n|$)/
+
+const parseRomanNumeral = (roman) => {
+  const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 }
+  const str = roman.toUpperCase()
+  let prev = 0
+  let sum = 0
+
+  for (let i = str.length - 1; i >= 0; i--) {
+    const curr = map[str[i]]
+    if (!curr) {
+      return null
+    }
+    if (curr < prev) {
+      sum -= curr
+    } else {
+      sum += curr
+    }
+    prev = curr
+  }
+
+  return sum
+}
+
+const parseAlphaNumeral = (value, upper = true) => {
+  const str = upper ? value.toUpperCase() : value.toLowerCase()
+  let result = 0
+  const base = upper ? 65 : 97
+
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i)
+    if (code < base || code > base + 25) {
+      return null
+    }
+    result = result * 26 + (code - base + 1)
+  }
+
+  return result
+}
+
+/**
+ * Parse the numeric index encoded in a structural outline marker.
+ *
+ * @param {string} marker Marker text including trailing punctuation.
+ * @param {number} depth Outline depth from 1 to 7.
+ * @returns {number|null} Parsed marker index, if valid.
+ */
+export const parseMarkerIndex = (marker, depth) => {
+  if (!markerMatchesDepth(marker, depth)) {
+    return null
+  }
+
+  switch (depth) {
+    case 1:
+      return parseRomanNumeral(marker.slice(0, -1))
+    case 2:
+      return parseAlphaNumeral(marker.slice(0, -1), true)
+    case 3:
+      return parseInt(marker.slice(0, -1), 10)
+    case 4:
+      return parseAlphaNumeral(marker.slice(0, -1), false)
+    case 5:
+      return parseRomanNumeral(marker.slice(0, -1))
+    case 6:
+      return parseInt(marker.slice(1, -1), 10)
+    case 7:
+      return parseAlphaNumeral(marker.slice(1, -1), false)
+    default:
+      return null
+  }
+}
+
+export const matchOutlineGroupStart = (src) => OUTLINE_GROUP_START.exec(src)
+
+const buildAncestorMarkers = (lastByDepth, depth) => {
+  const markers = []
+
+  for (let d = 1; d < depth; d++) {
+    if (lastByDepth[d]) {
+      markers.push(lastByDepth[d])
+    }
+  }
+
+  return markers
+}
+
+/**
+ * Try to parse one outline marker line from import markdown.
+ *
+ * @param {string} src Remaining markdown source.
+ * @param {Object} context Import lexer context.
+ * @returns {Object|null} Parsed outline item payload.
+ */
+export const tryParseOutlineItem = (src, context) => {
+  const {
+    listIndentation,
+    lastByDepth,
+    outlineChainActive,
+    inListContext,
+    pendingGroupStart
+  } = context
+
+  const cap = OUTLINE_ITEM_LINE.exec(src)
+  if (!cap) {
+    return null
+  }
+
+  const leadingSpaces = cap[1].length
+  const marker = cap[2]
+  const body = cap[3] || ''
+  const ancestorMarkers = buildAncestorMarkers(lastByDepth, 7)
+
+  if (leadingSpaces === 0 && /^\d+\.$/.test(marker) && !outlineChainActive) {
+    return null
+  }
+
+  const depth = depthFromIndent(leadingSpaces, marker, listIndentation, ancestorMarkers)
+  if (depth === null) {
+    return null
+  }
+
+  if (depth === 3 && /^\d+\.$/.test(marker) && inListContext) {
+    return null
+  }
+
+  let groupStart = false
+  let start
+
+  if (pendingGroupStart && depth === 1) {
+    groupStart = true
+    start = parseMarkerIndex(marker, 1)
+    if (start == null) {
+      return null
+    }
+  }
+
+  return {
+    consumed: cap[0],
+    depth,
+    marker,
+    text: body,
+    groupStart,
+    start
+  }
+}
+
+export const updateOutlineImportState = (state, depth, marker) => {
+  state.lastByDepth[depth] = marker
+
+  for (let d = depth + 1; d <= 7; d++) {
+    delete state.lastByDepth[d]
+  }
+}
+
 export function * walkOutlineGroups(blocks) {
   let currentGroup = []
 

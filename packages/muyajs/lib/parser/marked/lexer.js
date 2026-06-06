@@ -2,6 +2,11 @@ import { normal, gfm, pedantic } from './blockRules'
 import options from './options'
 import { splitCells, rtrim, getUniqueId } from './utils'
 import { CURSOR_ANCHOR_DNA, CURSOR_FOCUS_DNA } from '../../config'
+import {
+  matchOutlineGroupStart,
+  tryParseOutlineItem,
+  updateOutlineImportState
+} from '../../utils/outlineUtils'
 
 /**
  * Block Lexer
@@ -30,6 +35,9 @@ Lexer.prototype.lex = function(src, checkCursorSignature = false) {
   src = src.replace(/\r\n|\r/g, '\n').replace(/\t/g, '    ')
   this.checkFrontmatter = true
   this.footnoteOrder = 0
+  this.outlineChainActive = false
+  this.pendingOutlineGroupStart = false
+  this.outlineImportState = { lastByDepth: [] }
   this.token(src, true, null, checkCursorSignature)
 
   // Move footnote token to the end of tokens.
@@ -70,8 +78,20 @@ Lexer.prototype.token = function(
   prevListIsOrdered = null,
   checkCursorSignature = false
 ) {
-  const { footnote, frontMatter, isGitlabCompatibilityEnabled, math } = this.options
+  const {
+    footnote,
+    frontMatter,
+    isGitlabCompatibilityEnabled,
+    math,
+    outlineBlocksEnabled
+  } = this.options
   src = src.replace(/^ +$/gm, '')
+
+  const breakOutlineChain = () => {
+    this.outlineChainActive = false
+    this.outlineImportState = { lastByDepth: [] }
+    this.pendingOutlineGroupStart = false
+  }
 
   let loose
   let cap
@@ -144,6 +164,44 @@ Lexer.prototype.token = function(
       }
     }
 
+    // outline (before indented code — AR-2 / issue 06 slice 7)
+    if (outlineBlocksEnabled && top) {
+      cap = matchOutlineGroupStart(src)
+      if (cap) {
+        src = src.substring(cap[0].length)
+        this.pendingOutlineGroupStart = true
+        this.tokens.push({
+          type: 'outline_group_start'
+        })
+        continue
+      }
+
+      const parsed = tryParseOutlineItem(src, {
+        listIndentation: this.options.listIndentation,
+        lastByDepth: this.outlineImportState.lastByDepth,
+        outlineChainActive: this.outlineChainActive,
+        inListContext: prevListIsOrdered !== null,
+        pendingGroupStart: this.pendingOutlineGroupStart
+      })
+
+      if (parsed) {
+        src = src.substring(parsed.consumed.length)
+        if (parsed.groupStart) {
+          this.pendingOutlineGroupStart = false
+        }
+        this.outlineChainActive = true
+        updateOutlineImportState(this.outlineImportState, parsed.depth, parsed.marker)
+        this.tokens.push({
+          type: 'outline_item',
+          depth: parsed.depth,
+          text: cursorAnchorFocus + parsed.text,
+          groupStart: parsed.groupStart,
+          start: parsed.start
+        })
+        continue
+      }
+    }
+
     // code
     // An indented code block cannot interrupt a paragraph.
     cap = this.rules.code.exec(src)
@@ -154,6 +212,7 @@ Lexer.prototype.token = function(
         lastToken.text += `\n${cap[0].trimRight()}`
       } else {
         cap = cap[0].replace(/^ {4}/gm, '')
+        breakOutlineChain()
         this.tokens.push({
           type: 'code',
           codeBlockStyle: 'indented',
@@ -168,6 +227,7 @@ Lexer.prototype.token = function(
       cap = this.rules.multiplemath.exec(src)
       if (cap) {
         src = src.substring(cap[0].length)
+        breakOutlineChain()
         this.tokens.push({
           type: 'multiplemath',
           text: cursorAnchorFocus + cap[1],
@@ -181,6 +241,7 @@ Lexer.prototype.token = function(
         cap = this.rules.multiplemathGitlab.exec(src)
         if (cap) {
           src = src.substring(cap[0].length)
+          breakOutlineChain()
           this.tokens.push({
             type: 'multiplemath',
             text: cursorAnchorFocus + (cap[2] || ''),
@@ -229,6 +290,7 @@ Lexer.prototype.token = function(
     // fences
     cap = this.rules.fences.exec(src)
     if (cap) {
+      breakOutlineChain()
       src = src.substring(cap[0].length)
       const raw = cap[0]
       const text = cursorAnchorFocus + indentCodeCompensation(raw, cap[3] || '')
@@ -244,6 +306,7 @@ Lexer.prototype.token = function(
     // heading
     cap = this.rules.heading.exec(src)
     if (cap) {
+      breakOutlineChain()
       src = src.substring(cap[0].length)
       let text = cursorAnchorFocus + (cap[2] ? cap[2].trim() : '')
 
@@ -296,6 +359,7 @@ Lexer.prototype.token = function(
           item.cells[i] = splitCells(item.cells[i], item.header.length)
         }
 
+        breakOutlineChain()
         this.tokens.push(item)
 
         continue
@@ -305,6 +369,7 @@ Lexer.prototype.token = function(
     // hr
     cap = this.rules.hr.exec(src)
     if (cap) {
+      breakOutlineChain()
       const marker = cursorAnchorFocus + cap[0].replace(/\n*$/, '')
       src = src.substring(cap[0].length)
       this.tokens.push({
@@ -317,6 +382,7 @@ Lexer.prototype.token = function(
     // blockquote
     cap = this.rules.blockquote.exec(src)
     if (cap) {
+      breakOutlineChain()
       src = src.substring(cap[0].length)
 
       this.tokens.push({
@@ -342,6 +408,7 @@ Lexer.prototype.token = function(
     // list
     cap = this.rules.list.exec(src)
     if (cap) {
+      breakOutlineChain()
       let checked
       src = src.substring(cap[0].length)
       bull = cap[2]
@@ -526,6 +593,7 @@ Lexer.prototype.token = function(
     // html
     cap = this.rules.html.exec(src)
     if (cap) {
+      breakOutlineChain()
       src = src.substring(cap[0].length)
       this.tokens.push({
         type: this.options.sanitize ? 'paragraph' : 'html',
@@ -604,6 +672,7 @@ Lexer.prototype.token = function(
           )
         }
 
+        breakOutlineChain()
         this.tokens.push(item)
 
         continue
@@ -613,6 +682,7 @@ Lexer.prototype.token = function(
     // lheading
     cap = this.rules.lheading.exec(src)
     if (cap) {
+      breakOutlineChain()
       const precededToken = this.tokens[this.tokens.length - 1]
       const chops = cap[0].trim().split(/\n/)
       const marker = chops[chops.length - 1]

@@ -86,6 +86,8 @@ const importRegister = (ContentState) => {
     }
     const {
       footnote,
+      outlineBlocksEnabled,
+      listIndentation,
       isGitlabCompatibilityEnabled,
       superSubScript,
       trimUnnecessaryCodeBlockEmptyLines
@@ -94,6 +96,8 @@ const importRegister = (ContentState) => {
     const tokens = new Lexer({
       disableInline: true,
       footnote,
+      outlineBlocksEnabled,
+      listIndentation,
       isGitlabCompatibilityEnabled,
       superSubScript
     }).lex(markdown, checkCursorSignature)
@@ -371,6 +375,21 @@ const importRegister = (ContentState) => {
 
         case 'footnote_end': {
           parentList.shift()
+          break
+        }
+
+        case 'outline_group_start': {
+          break
+        }
+
+        case 'outline_item': {
+          const { depth, text, groupStart, start } = token
+          block = this.createOutlineItem(depth, {
+            groupStart: groupStart || false,
+            start
+          })
+          block.children[0].children[0].text = text
+          this.appendChild(parentList[0], block)
           break
         }
 
