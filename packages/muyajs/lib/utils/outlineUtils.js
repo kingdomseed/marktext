@@ -256,6 +256,7 @@ export const getOutlineRenderMeta = (item, blocks, listIndentation) => {
 const OUTLINE_GROUP_START = /^<!-- mt:outline-group-start -->(?:\n|$)/
 const OUTLINE_ITEM_LINE =
   /^([ ]*)((?:[IVXLCDM]+\.|[A-Z]+\.|\d+\.|[a-z]+\.|[ivxlcdm]+\.|\(\d+\)|\([a-z]+\)))(?:[ \t]+([^\n]*?))?(?:\n|$)/
+const LINE = /^([^\n]*)(?:\n|$)/
 
 const parseRomanNumeral = (roman) => {
   const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 }
@@ -341,6 +342,77 @@ const buildAncestorMarkers = (lastByDepth, depth) => {
   return markers
 }
 
+const buildNextLastByDepth = (lastByDepth, depth, marker) => {
+  const nextLastByDepth = lastByDepth.slice()
+  nextLastByDepth[depth] = marker
+
+  for (let d = depth + 1; d <= 7; d++) {
+    delete nextLastByDepth[d]
+  }
+
+  return nextLastByDepth
+}
+
+const lineStartsOutlineItem = (src, context, currentDepth, currentMarker) => {
+  const cap = OUTLINE_ITEM_LINE.exec(src)
+  if (!cap) {
+    return false
+  }
+
+  const nextLastByDepth = buildNextLastByDepth(
+    context.lastByDepth,
+    currentDepth,
+    currentMarker
+  )
+  const leadingSpaces = cap[1].length
+  const marker = cap[2]
+  const ancestorMarkers = buildAncestorMarkers(nextLastByDepth, 7)
+
+  if (leadingSpaces === 0 && /^\d+\.$/.test(marker) && !context.outlineChainActive) {
+    return false
+  }
+
+  const depth = depthFromIndent(leadingSpaces, marker, context.listIndentation, ancestorMarkers)
+  if (depth === null) {
+    return false
+  }
+
+  return !(depth === 3 && /^\d+\.$/.test(marker) && context.inListContext)
+}
+
+const parseOutlineContinuationLines = (src, continuationIndent, context, depth, marker) => {
+  let rest = src
+  let consumed = ''
+  const lines = []
+
+  while (rest) {
+    if (OUTLINE_GROUP_START.test(rest)) {
+      break
+    }
+
+    const line = LINE.exec(rest)
+    if (!line || !line[0]) {
+      break
+    }
+
+    const text = line[1]
+    const leadingSpaces = /^ */.exec(text)[0].length
+    if (leadingSpaces !== continuationIndent || !text.slice(continuationIndent)) {
+      break
+    }
+
+    if (lineStartsOutlineItem(rest, context, depth, marker)) {
+      break
+    }
+
+    lines.push(text.slice(continuationIndent))
+    consumed += line[0]
+    rest = rest.substring(line[0].length)
+  }
+
+  return { consumed, lines }
+}
+
 /**
  * Try to parse one outline marker line from import markdown.
  *
@@ -364,7 +436,7 @@ export const tryParseOutlineItem = (src, context) => {
 
   const leadingSpaces = cap[1].length
   const marker = cap[2]
-  const body = cap[3] || ''
+  let body = cap[3] || ''
   const ancestorMarkers = buildAncestorMarkers(lastByDepth, 7)
 
   if (leadingSpaces === 0 && /^\d+\.$/.test(marker) && !outlineChainActive) {
@@ -391,8 +463,23 @@ export const tryParseOutlineItem = (src, context) => {
     }
   }
 
+  let consumed = cap[0]
+  const continuation = parseOutlineContinuationLines(
+    src.substring(consumed.length),
+    leadingSpaces + markerWidth(marker),
+    context,
+    depth,
+    marker
+  )
+
+  if (continuation.lines.length) {
+    const continuationText = continuation.lines.join('\n')
+    body = body ? `${body}\n${continuationText}` : continuationText
+    consumed += continuation.consumed
+  }
+
   return {
-    consumed: cap[0],
+    consumed,
     depth,
     marker,
     text: body,

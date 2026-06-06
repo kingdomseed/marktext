@@ -12,7 +12,13 @@ const createContentState = (
   setup: (contentState: ContentState) => void,
   listIndentation: number | string = 2
 ) => {
-  const muya = {
+  const muya: {
+    options: Record<string, unknown>
+    eventCenter: unknown
+    container: HTMLDivElement
+    blur(): void
+    contentState?: ContentState
+  } = {
     options: Object.assign({}, MUYA_DEFAULT_OPTION, { listIndentation }),
     eventCenter: new EventCenter(),
     container: document.createElement('div'),

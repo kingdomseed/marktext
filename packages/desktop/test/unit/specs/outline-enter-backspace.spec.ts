@@ -8,7 +8,13 @@ import { getOutlineRenderMetaMap } from 'muya/lib/utils/outlineUtils'
 type OutlineBlock = any
 
 const createContentState = (setup: (contentState: ContentState) => void) => {
-  const muya = {
+  const muya: {
+    options: Record<string, unknown>
+    eventCenter: unknown
+    container: HTMLDivElement
+    blur(): void
+    contentState?: ContentState
+  } = {
     options: Object.assign({}, MUYA_DEFAULT_OPTION),
     eventCenter: new EventCenter(),
     container: document.createElement('div'),

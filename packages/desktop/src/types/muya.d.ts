@@ -14,7 +14,14 @@
 // don't leak through.
 
 declare module 'muya/lib' {
-  const Muya: any
+  class Muya {
+    static use(...args: any[]): void
+    constructor(...args: any[])
+    container: HTMLDivElement
+    contentState: any
+    destroy(): void
+    [key: string]: any
+  }
   export default Muya
 }
 
@@ -64,8 +71,18 @@ declare module 'muya/lib/parser' {
 }
 
 declare module 'muya/lib/contentState' {
-  const contentState: any
-  export default contentState
+  class ContentState {
+    constructor(...args: any[])
+    cursor: any
+    listIndentation: number | string
+    [key: string]: any
+    createBlock(...args: any[]): any
+    createBlockP(...args: any[]): any
+    createOutlineItem(...args: any[]): any
+    getBlocks(): any[]
+    setBlocks(blocks: any[]): void
+  }
+  export default ContentState
 }
 
 declare module 'muya/lib/eventHandler/event' {
@@ -75,6 +92,35 @@ declare module 'muya/lib/eventHandler/event' {
 
 declare module 'muya/lib/config' {
   export const MUYA_DEFAULT_OPTION: any
+  export const CLASS_OR_ID: any
+}
+
+declare module 'muya/lib/selection' {
+  const selection: any
+  export default selection
+}
+
+declare module 'muya/lib/selection/dom' {
+  export const findNearestParagraph: any
+  export const findOutMostParagraph: any
+  export const isBlockContainer: any
+}
+
+declare module 'muya/lib/utils/outlineUtils' {
+  export const computeMarker: any
+  export const markerWidth: any
+  export const indentForDepth: any
+  export const markerMatchesDepth: any
+  export const depthFromIndent: any
+  export const findImplicitParentInGroup: any
+  export const getSiblingIndexInGroup: any
+  export const getOutlineRenderMetaMap: any
+  export const getOutlineRenderMeta: any
+  export const parseMarkerIndex: any
+  export const matchOutlineGroupStart: any
+  export const tryParseOutlineItem: any
+  export const updateOutlineImportState: any
+  export function walkOutlineGroups(...args: any[]): any
 }
 
 declare module 'muya/lib/marktext/spellchecker.js' {
