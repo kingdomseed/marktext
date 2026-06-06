@@ -121,8 +121,9 @@ All seven decisions locked. See **Locked decisions** below.
 | Upstream suggestion (issue 00) | ✅ Filed: https://github.com/marktext/marktext/issues/4379 |
 | Implementation issue 01 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/1 → `6e9b137` |
 | Dev smoke test | ❌ Not run |
-| Implementation issue 02 | ✅ Branch `feat/issue-02-outline-utils-block-model` — pending PR |
-| Implementation (issue 03+) | ⏭️ **Next** |
+| Implementation issue 02 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/2 → `8283e2a` |
+| Implementation issue 03 | 🔄 Branch `feat/issue-03-wysiwyg-render` — pending PR |
+| Implementation (issue 04+) | ⏭️ **Next** |
 
 ---
 
@@ -296,9 +297,9 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Next step
 
-**Issue 02** (AFK): outline utilities + `outline-item` block scaffolding — TDD-first per `.scratch/outline-blocks/issues/02-outline-utils-block-model.md`.
+**Issue 03** (AFK): WYSIWYG render + editor theme CSS — TDD-first per `.scratch/outline-blocks/issues/03-wysiwyg-render-theme-css.md`.
 
-Issue 01 merged (`6e9b137` on `feat/outline-editing-setup`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
+Issues 01–02 merged on `feat/outline-editing-setup` (`8283e2a`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
 
 ## Implementation order
 

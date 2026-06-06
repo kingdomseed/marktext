@@ -1,4 +1,5 @@
 import { CLASS_OR_ID } from '../../../config'
+import { getOutlineRenderMeta } from '../../../utils/outlineUtils'
 import { renderTableTools } from './renderToolBar'
 import { footnoteJumpIcon } from './renderFootnoteJump'
 import { renderEditIcon } from './renderContainerEditIcon'
@@ -169,6 +170,41 @@ export default function renderContainerBlock(parent, block, activeBlocks, matche
     selector += `.${CLASS_OR_ID.AG_LIST_ITEM}`
     selector += `.ag-${listItemType}-list-item`
     selector += isLooseListItem ? `.${CLASS_OR_ID.AG_LOOSE_LIST_ITEM}` : `.${CLASS_OR_ID.AG_TIGHT_LIST_ITEM}`
+  } else if (type === 'outline-item') {
+    const blocks = this.muya.contentState.getBlocks()
+    const listIndentation = this.muya.options.listIndentation
+    const { marker, indent } = getOutlineRenderMeta(block, blocks, listIndentation)
+    const { cursor, selectedBlock } = this.muya.contentState
+    const isActive =
+      activeBlocks.some((b) => b.key === block.key) || block.key === cursor.start.key
+
+    selector = `div#${block.key}.${CLASS_OR_ID.AG_OUTLINE_ITEM}`
+    if (isActive) {
+      selector += `.${CLASS_OR_ID.AG_ACTIVE}`
+    }
+    if (!block.parent && selectedBlock && block.key === selectedBlock.key) {
+      selector += `.${CLASS_OR_ID.AG_SELECTED}`
+    }
+
+    Object.assign(data.dataset, {
+      depth: String(block.depth),
+      marker
+    })
+
+    if (indent > 0) {
+      Object.assign(data.attrs, {
+        style: `padding-left: ${indent}ch`
+      })
+    }
+
+    children.unshift(
+      h(`span.${CLASS_OR_ID.AG_OUTLINE_MARKER}`, {
+        attrs: {
+          contenteditable: 'false',
+          spellcheck: 'false'
+        }
+      }, marker)
+    )
   } else if (type === 'pre') {
     Object.assign(data.attrs, { spellcheck: 'false' })
     Object.assign(data.dataset, { role: functionType })

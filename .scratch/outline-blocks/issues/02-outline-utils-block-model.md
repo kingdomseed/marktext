@@ -1,6 +1,6 @@
 # Outline utilities and block model scaffolding
 
-**Status:** implemented — pending PR
+**Status:** merged — PR #2
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-17, US-18
 

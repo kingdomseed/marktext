@@ -274,6 +274,7 @@ export const CLASS_OR_ID = Object.freeze(
     'AG_ORDER_LIST',
     'AG_ORDER_LIST_ITEM',
     'AG_OUTLINE_ITEM',
+    'AG_OUTLINE_MARKER',
     'AG_OUTPUT_REMOVE',
     'AG_PARAGRAPH',
     'AG_RAW_HTML',

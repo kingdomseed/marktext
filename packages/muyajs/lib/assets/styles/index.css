@@ -648,6 +648,35 @@ li.ag-list-item > p.ag-paragraph > span {
   width: 100%;
 }
 
+.ag-outline-item {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.ag-outline-marker {
+  flex: 0 0 auto;
+  min-width: 2.5em;
+  padding-right: 0.25em;
+  user-select: none;
+  pointer-events: none;
+}
+
+.ag-outline-item > p.ag-paragraph {
+  display: block;
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+  width: auto;
+}
+
+.ag-outline-item > p.ag-paragraph > span {
+  width: 100%;
+}
+
 pre.ag-fence-code,
 pre.ag-indent-code {
   margin: 1rem 0;

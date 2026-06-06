@@ -1,6 +1,6 @@
 # WYSIWYG render and editor theme CSS
 
-**Status:** ready-for-agent  
+**Status:** implemented — pending PR  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-12, US-20, US-28, US-29, US-56
 
@@ -29,11 +29,11 @@ Manual smoke in `pnpm dev` after green tests.
 
 ## Acceptance criteria
 
-- [ ] TDD render/DOM tests pass
-- [ ] Structural marker displayed; not editable as body prefix
-- [ ] Body editable in child paragraph; caret/selection excludes marker
-- [ ] Cumulative indent per depth and `listIndentation`
-- [ ] `pnpm run lint` and `pnpm run test` pass
+- [x] TDD render/DOM tests pass
+- [x] Structural marker displayed; not editable as body prefix
+- [x] Body editable in child paragraph; caret/selection excludes marker
+- [x] Cumulative indent per depth and `listIndentation`
+- [x] `pnpm run lint` and `pnpm run test` pass
 
 ## Blocked by
 

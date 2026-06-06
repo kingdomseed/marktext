@@ -144,6 +144,78 @@ export const depthFromIndent = (leadingSpaces, marker, listIndentation, ancestor
   return null
 }
 
+export const findImplicitParentInGroup = (item, group) => {
+  const itemIndex = group.indexOf(item)
+  if (itemIndex < 0) {
+    return null
+  }
+
+  for (let i = itemIndex - 1; i >= 0; i--) {
+    if (group[i].depth === item.depth - 1) {
+      return group[i]
+    }
+  }
+
+  return null
+}
+
+const getSiblingIndexInGroup = (item, group) => {
+  const parent = findImplicitParentInGroup(item, group)
+  const itemIndex = group.indexOf(item)
+  let siblingIndex = 0
+
+  for (let i = 0; i < itemIndex; i++) {
+    const candidate = group[i]
+    if (
+      candidate.depth === item.depth &&
+      findImplicitParentInGroup(candidate, group) === parent
+    ) {
+      siblingIndex++
+    }
+  }
+
+  return siblingIndex
+}
+
+const buildAncestorMarkers = (item, group) => {
+  const markers = []
+  let current = item
+
+  while (current.depth > 1) {
+    const parent = findImplicitParentInGroup(current, group)
+    if (!parent) {
+      break
+    }
+    markers.unshift(computeMarker(parent, { siblingIndex: getSiblingIndexInGroup(parent, group) }))
+    current = parent
+  }
+
+  return markers
+}
+
+export const getOutlineRenderMeta = (item, blocks, listIndentation) => {
+  for (const group of walkOutlineGroups(blocks)) {
+    if (!group.includes(item)) {
+      continue
+    }
+
+    const siblingIndex = getSiblingIndexInGroup(item, group)
+    const ancestorMarkers = buildAncestorMarkers(item, group)
+
+    return {
+      marker: computeMarker(item, { siblingIndex }),
+      indent: indentForDepth(item.depth, listIndentation, ancestorMarkers),
+      siblingIndex
+    }
+  }
+
+  return {
+    marker: computeMarker(item),
+    indent: indentForDepth(item.depth, listIndentation),
+    siblingIndex: 0
+  }
+}
+
 export function * walkOutlineGroups(blocks) {
   let currentGroup = []
 
