@@ -11,6 +11,11 @@ import footerHeaderCss from '../assets/styles/headerFooterStyle.css?inline'
 import { EXPORT_DOMPURIFY_CONFIG } from '../config'
 import { sanitize, unescapeHTML } from '../utils'
 import { validEmoji } from '../ui/emojis'
+import ExportMarkdown from './exportMarkdown'
+import { renderOutlineItemHtml } from './outlineHtml'
+
+export const hasOutlineItems = (blocks) =>
+  Array.isArray(blocks) && blocks.some((block) => block.type === 'outline-item')
 
 export const getSanitizeHtml = (markdown, options) => {
   const html = marked(markdown, options)
@@ -20,9 +25,10 @@ export const getSanitizeHtml = (markdown, options) => {
 const DIAGRAM_TYPE = ['mermaid', 'flowchart', 'sequence', 'plantuml', 'vega-lite']
 
 class ExportHtml {
-  constructor(markdown, muya) {
+  constructor(markdown, muya, blocks = null) {
     this.markdown = markdown
     this.muya = muya
+    this.blocks = blocks
     this.exportContainer = null
     this.mathRendererCalled = false
   }
@@ -128,17 +134,14 @@ class ExportHtml {
     }
   }
 
-  // render pure html by marked
-  async renderHtml(toc) {
-    this.mathRendererCalled = false
-    let html = marked(this.markdown, {
+  _getMarkedOptions(toc) {
+    return {
       superSubScript: this.muya ? this.muya.options.superSubScript : false,
       footnote: this.muya ? this.muya.options.footnote : false,
       isGitlabCompatibilityEnabled: this.muya
         ? this.muya.options.isGitlabCompatibilityEnabled
         : false,
-      highlight(code, lang) {
-        // Language may be undefined (GH#591)
+      highlight: (code, lang) => {
         if (!lang) {
           return code
         }
@@ -169,9 +172,52 @@ class ExportHtml {
         }
         return toc
       }
-    })
+    }
+  }
 
-    html = sanitize(html, EXPORT_DOMPURIFY_CONFIG, false)
+  renderHybridHtml(blocks, toc) {
+    const listIndentation = this.muya?.options?.listIndentation ?? 1
+    const isGitlabCompatibilityEnabled = this.muya?.options?.isGitlabCompatibilityEnabled ?? false
+    const exporter = new ExportMarkdown(blocks, listIndentation, isGitlabCompatibilityEnabled)
+    const markedOptions = this._getMarkedOptions(toc)
+    const parts = []
+    let i = 0
+
+    while (i < blocks.length) {
+      if (blocks[i].type === 'outline-item') {
+        const block = blocks[i]
+        const bodyMarkdown = exporter.translateBlocks2Markdown(block.children)
+        let bodyHtml = marked(bodyMarkdown, markedOptions)
+        bodyHtml = sanitize(bodyHtml, EXPORT_DOMPURIFY_CONFIG, false)
+        parts.push(renderOutlineItemHtml(block, blocks, listIndentation, bodyHtml))
+        i++
+      } else {
+        const run = []
+        while (i < blocks.length && blocks[i].type !== 'outline-item') {
+          run.push(blocks[i])
+          i++
+        }
+        const markdownFragment = exporter.translateBlocks2Markdown(run)
+        let html = marked(markdownFragment, markedOptions)
+        html = sanitize(html, EXPORT_DOMPURIFY_CONFIG, false)
+        parts.push(html)
+      }
+    }
+
+    return parts.join('\n')
+  }
+
+  // render pure html by marked
+  async renderHtml(toc) {
+    this.mathRendererCalled = false
+    let html
+
+    if (hasOutlineItems(this.blocks)) {
+      html = this.renderHybridHtml(this.blocks, toc)
+    } else {
+      html = marked(this.markdown, this._getMarkedOptions(toc))
+      html = sanitize(html, EXPORT_DOMPURIFY_CONFIG, false)
+    }
 
     const exportContainer = (this.exportContainer = document.createElement('div'))
     exportContainer.classList.add('ag-render-container')

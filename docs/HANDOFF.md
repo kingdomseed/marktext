@@ -127,8 +127,9 @@ All seven decisions locked. See **Locked decisions** below.
 | Implementation issue 05 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/5 → `d58eb26` |
 | Implementation issue 06 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/6 → `e7fadb8` |
 | Implementation issue 07 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/7 → `310d022` |
-| Implementation issue 08 | 🔄 Branch `feat/issue-08-ui-gating` — pending PR |
-| Implementation (issue 09+) | ⏭️ **Next** |
+| Implementation issue 08 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/8 → `947a8e3` |
+| Implementation issue 09 | 🔄 Branch `feat/issue-09-hybrid-html-export` — in progress |
+| Implementation (issue 10+) | ⏭️ **Next** |
 
 ---
 
@@ -302,9 +303,9 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Next step
 
-**Issue 08** (AFK): Creation UI, Turn Into matrix, and UI gating — TDD-first per `.scratch/outline-blocks/issues/08-creation-ui-turn-into.md`.
+**Issue 09** (AFK): Hybrid HTML/PDF export seam — TDD-first per `.scratch/outline-blocks/issues/09-hybrid-html-export.md`.
 
-Issues 01–07 merged on `feat/outline-editing-setup` (`310d022`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
+Issues 01–08 merged on `feat/outline-editing-setup` (`947a8e3`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
 
 ## Implementation order
 

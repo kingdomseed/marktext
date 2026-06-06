@@ -171,12 +171,14 @@ class Muya {
 
   exportStyledHTML(options) {
     const { markdown } = this
-    return new ExportHtml(markdown, this).generate(options)
+    const blocks = this.contentState.getBlocks()
+    return new ExportHtml(markdown, this, blocks).generate(options)
   }
 
   exportHtml() {
     const { markdown } = this
-    return new ExportHtml(markdown, this).renderHtml()
+    const blocks = this.contentState.getBlocks()
+    return new ExportHtml(markdown, this, blocks).renderHtml()
   }
 
   getWordCount(markdown) {

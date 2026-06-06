@@ -1,6 +1,6 @@
 # Hybrid HTML/PDF export seam
 
-**Status:** ready-for-agent  
+**Status:** in-progress  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-52, US-53, US-54
 

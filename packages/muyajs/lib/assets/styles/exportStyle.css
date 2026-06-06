@@ -63,3 +63,35 @@
   margin: 0 10px;
   border-bottom: 2px dotted black;
 }
+
+.outline-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.outline-marker {
+  flex: 0 0 auto;
+  min-width: 2.5em;
+  padding-right: 0.25em;
+  user-select: none;
+}
+
+.outline-body {
+  flex: 1 1 0;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.outline-body > p {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+@media print {
+  .outline-item {
+    break-inside: avoid;
+  }
+}
