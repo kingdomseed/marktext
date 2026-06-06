@@ -128,8 +128,8 @@ All seven decisions locked. See **Locked decisions** below.
 | Implementation issue 06 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/6 → `e7fadb8` |
 | Implementation issue 07 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/7 → `310d022` |
 | Implementation issue 08 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/8 → `947a8e3` |
-| Implementation issue 09 | 🔄 Branch `feat/issue-09-hybrid-html-export` — in progress |
-| Implementation (issue 10+) | ⏭️ **Next** |
+| Implementation issue 09 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/9 → `27032b1` |
+| Implementation issue 10 | ⏭️ **Next** — E2E + upstream PR prep |
 
 ---
 
@@ -303,9 +303,9 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Next step
 
-**Issue 09** (AFK): Hybrid HTML/PDF export seam — TDD-first per `.scratch/outline-blocks/issues/09-hybrid-html-export.md`.
+**Issue 10** (AFK + HITL): E2E primary flow + upstream PR prep — per `.scratch/outline-blocks/issues/10-e2e-upstream-pr-prep.md`.
 
-Issues 01–08 merged on `feat/outline-editing-setup` (`947a8e3`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
+Issues 01–09 merged on `feat/outline-editing-setup` (`27032b1`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
 
 ## Implementation order
 
