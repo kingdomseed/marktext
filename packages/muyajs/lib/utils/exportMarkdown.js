@@ -46,6 +46,7 @@ class ExportMarkdown {
     const result = []
     // helper for CommonMark 264
     let lastListBullet = ''
+    let previousBlockType = null
 
     for (const block of blocks) {
       if (block.type !== 'ul' && block.type !== 'ol') {
@@ -173,6 +174,9 @@ class ExportMarkdown {
           break
         }
         case 'outline-item': {
+          if (previousBlockType && previousBlockType !== 'outline-item') {
+            this.insertLineBreak(result, indent)
+          }
           result.push(this.normalizeOutlineItem(block))
           break
         }
@@ -181,6 +185,7 @@ class ExportMarkdown {
           break
         }
       }
+      previousBlockType = block.type
     }
     return result.join('')
   }

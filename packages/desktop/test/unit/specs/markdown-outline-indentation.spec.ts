@@ -178,6 +178,16 @@ describe('markdown outline export round-trip', () => {
     verifyRoundTrip(markdown, 1)
   })
 
+  it('round-trips an outline item after prose with a block boundary', () => {
+    const markdown = 'Intro paragraph\n\nI. One\n'
+    verifyRoundTrip(markdown, 1)
+  })
+
+  it('round-trips prose between outline siblings without breaking continuation', () => {
+    const markdown = 'I. One\n\nInterlude\n\nII. Two\n'
+    verifyRoundTrip(markdown, 1)
+  })
+
   it('exports existing outline items when outlineBlocksEnabled is false', () => {
     const ctx = createMuyaContext(1, { outlineBlocksEnabled: false })
     const item = ctx.contentState.createOutlineItem(1)
