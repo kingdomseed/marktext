@@ -221,6 +221,194 @@ const outlineCtrl = (ContentState) => {
 
     return this.reparentingCascade(item, -1) ? this.partialRender() : false
   }
+
+  ContentState.prototype.isOutlineBodyEmpty = function(item) {
+    const paragraph = item.children[0]
+    if (!paragraph || paragraph.type !== 'p') {
+      return true
+    }
+
+    return paragraph.children.every((child) => !child.text)
+  }
+
+  ContentState.prototype.getAdjacentPriorOutlineSibling = function(item) {
+    const index = this.findIndex(this.blocks, item)
+    if (index <= 0) {
+      return null
+    }
+
+    const previous = this.blocks[index - 1]
+    if (previous.type !== 'outline-item' || previous.depth !== item.depth) {
+      return null
+    }
+
+    const parent = this.findImplicitParent(item)
+    const previousParent = this.findImplicitParent(previous)
+
+    return parent === previousParent ? previous : null
+  }
+
+  ContentState.prototype.insertOutlineSibling = function(item) {
+    const newItem = this.createOutlineItem(item.depth)
+    this.insertAfter(newItem, item)
+    const key = newItem.children[0].children[0].key
+
+    this.cursor = {
+      start: { key, offset: 0 },
+      end: { key, offset: 0 },
+      isEdit: true
+    }
+
+    return this.partialRender()
+  }
+
+  ContentState.prototype.exitOutlineToParagraph = function(item) {
+    const index = this.findIndex(this.blocks, item)
+    const bodyText = item.children[0].children.map((child) => child.text).join('\n')
+    const newBlock = this.createBlockP(bodyText)
+    const previous = item.preSibling ? this.getBlock(item.preSibling) : null
+    const next = item.nextSibling ? this.getBlock(item.nextSibling) : null
+
+    newBlock.preSibling = item.preSibling
+    newBlock.nextSibling = item.nextSibling
+
+    if (previous) {
+      previous.nextSibling = newBlock.key
+    }
+
+    if (next) {
+      next.preSibling = newBlock.key
+    }
+
+    this.blocks.splice(index, 1, newBlock)
+
+    const key = newBlock.children[0].key
+    this.cursor = {
+      start: { key, offset: 0 },
+      end: { key, offset: 0 },
+      isEdit: true
+    }
+
+    return this.partialRender()
+  }
+
+  ContentState.prototype.mergeOutlineSiblings = function(item, priorSibling) {
+    const priorParagraph = priorSibling.children[0]
+    const itemParagraph = item.children[0]
+    const priorSpan = priorParagraph.children[0]
+    const itemSpan = itemParagraph.children[0]
+    const offset = priorSpan.text.length
+
+    priorSpan.text += itemSpan.text
+    this.removeBlock(item)
+
+    this.cursor = {
+      start: { key: priorSpan.key, offset },
+      end: { key: priorSpan.key, offset },
+      isEdit: true
+    }
+
+    return this.partialRender()
+  }
+
+  ContentState.prototype.deleteOutlineItem = function(item) {
+    const index = this.findIndex(this.blocks, item)
+    let key
+    let offset = 0
+
+    const previous = index > 0 ? this.blocks[index - 1] : null
+    if (previous?.type === 'outline-item') {
+      const span = previous.children[0].children[0]
+      key = span.key
+      offset = span.text.length
+    } else if (index < this.blocks.length - 1) {
+      const next = this.blocks[index + 1]
+      if (next.type === 'outline-item') {
+        key = next.children[0].children[0].key
+      } else if (next.type === 'p') {
+        key = next.children[0].key
+      }
+    }
+
+    this.removeBlock(item)
+
+    if (key) {
+      this.cursor = {
+        start: { key, offset },
+        end: { key, offset },
+        isEdit: true
+      }
+    }
+
+    return this.partialRender()
+  }
+
+  ContentState.prototype.enterInOutlineItem = function(outlineItem, bodyBlock, start) {
+    const activeLine = this.getBlock(start.key)
+    const text = activeLine.text
+    const left = start.offset
+    const right = text.length - left
+
+    if (left === 0 && right === 0 && this.isOutlineBodyEmpty(outlineItem)) {
+      if (outlineItem.depth === 1) {
+        return this.exitOutlineToParagraph(outlineItem)
+      }
+
+      return this.outdentOutlineItem(outlineItem)
+    }
+
+    if (left !== 0 && right !== 0) {
+      const newBodyBlock = this.chopBlockByCursor(bodyBlock, start.key, start.offset)
+      const newItem = this.createOutlineItem(outlineItem.depth)
+      newItem.children = [newBodyBlock]
+      newBodyBlock.parent = newItem.key
+      this.insertAfter(newItem, outlineItem)
+
+      const key = newBodyBlock.children[0].key
+      this.cursor = {
+        start: { key, offset: 0 },
+        end: { key, offset: 0 },
+        isEdit: true
+      }
+
+      return this.partialRender()
+    }
+
+    if (left !== 0 && right === 0) {
+      return this.insertOutlineSibling(outlineItem)
+    }
+
+    if (left === 0 && right !== 0) {
+      const newItem = this.createOutlineItem(outlineItem.depth)
+      this.insertBefore(newItem, outlineItem)
+
+      const key = outlineItem.children[0].children[0].key
+      this.cursor = {
+        start: { key, offset: 0 },
+        end: { key, offset: 0 },
+        isEdit: true
+      }
+
+      return this.partialRender()
+    }
+
+    return this.insertOutlineSibling(outlineItem)
+  }
+
+  ContentState.prototype.handleOutlineBackspace = function(outlineItem, info, priorSibling) {
+    switch (info) {
+      case 'DELETE':
+        return this.deleteOutlineItem(outlineItem)
+      case 'MERGE':
+        return this.mergeOutlineSiblings(outlineItem, priorSibling)
+      case 'OUTDENT':
+        return this.outdentOutlineItem(outlineItem)
+      case 'EXIT':
+        return this.exitOutlineToParagraph(outlineItem)
+      default:
+        return false
+    }
+  }
 }
 
 export default outlineCtrl

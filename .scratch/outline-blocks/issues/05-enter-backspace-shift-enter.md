@@ -1,6 +1,6 @@
 # Enter, Backspace, and Shift+Enter
 
-**Status:** ready-for-agent  
+**Status:** implemented — pending PR  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-24, US-25, US-26, US-27, US-30, US-51
 
@@ -31,10 +31,10 @@ Do not copy `enterInEmptyParagraph` list grandparent logic (lines 123–207); ou
 
 ## Acceptance criteria
 
-- [ ] All TDD slices pass
-- [ ] Enter/Backspace/Shift+Enter match AR-4 and AR-8 merge scope
-- [ ] Enter at outline boundary next to list/heading follows normal outline rules (no special casing)
-- [ ] `pnpm run lint` and `pnpm run test` pass
+- [x] All TDD slices pass
+- [x] Enter/Backspace/Shift+Enter match AR-4 and AR-8 merge scope
+- [x] Enter at outline boundary next to list/heading follows normal outline rules (no special casing)
+- [x] `pnpm run lint` and `pnpm run test` pass
 
 ## Blocked by
 

@@ -442,6 +442,11 @@ const enterCtrl = (ContentState) => {
       block = parent
       parent = this.getParent(block)
     }
+
+    if (parent && parent.type === 'outline-item' && block.type === 'p') {
+      return this.enterInOutlineItem(parent, block, start)
+    }
+
     const paragraph = document.querySelector(`#${block.key}`)
 
     // Handles custom enter logic in a list item (should not be selecting the p)

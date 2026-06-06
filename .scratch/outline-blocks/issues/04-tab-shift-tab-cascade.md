@@ -1,6 +1,6 @@
 # Tab / Shift+Tab depth change and reparenting cascade
 
-**Status:** implemented — pending PR  
+**Status:** merged — PR #4  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-13, US-14, US-15, US-16, US-17, US-19, US-20, US-23, US-48
 

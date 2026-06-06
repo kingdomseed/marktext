@@ -99,6 +99,26 @@ const backspaceCtrl = (ContentState) => {
         return { type: 'BLOCKQUOTE', info: 'INSERT_BEFORE' }
       }
     }
+
+    const outlineItem = this.getOutlineItemForBlock(block)
+    if (outlineItem && inLeft === 0 && this.isFirstChild(block)) {
+      const bodyText = block.children.map((child) => child.text).join('')
+
+      if (!bodyText) {
+        return { type: 'OUTLINE', info: 'DELETE' }
+      }
+
+      const priorSibling = this.getAdjacentPriorOutlineSibling(outlineItem)
+      if (priorSibling) {
+        return { type: 'OUTLINE', info: 'MERGE', priorSibling }
+      }
+
+      if (outlineItem.depth > 1) {
+        return { type: 'OUTLINE', info: 'OUTDENT' }
+      }
+
+      return { type: 'OUTLINE', info: 'EXIT' }
+    }
     if (!outBlock.preSibling && outLeft === 0) {
       return { type: 'STOP' }
     }
@@ -513,6 +533,17 @@ const backspaceCtrl = (ContentState) => {
       switch (inlineDegrade.type) {
         case 'STOP': // Cursor at begin of article and nothing need to do
           break
+        case 'OUTLINE': {
+          const outlineItem = this.getOutlineItemForBlock(block)
+          if (outlineItem) {
+            return this.handleOutlineBackspace(
+              outlineItem,
+              inlineDegrade.info,
+              inlineDegrade.priorSibling
+            )
+          }
+          break
+        }
         case 'OL':
         case 'LI': {
           // Note: The current block is the 'p' item, not the 'li' item
