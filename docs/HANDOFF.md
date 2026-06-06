@@ -102,7 +102,8 @@ All seven decisions locked. See **Locked decisions** below.
 ### Not done yet
 
 - Dev smoke test (`pnpm install && pnpm dev`).
-- Upstream suggestion issue (issue 00) + implementation per issues 01–10.
+- Merge fork PR #1 for issue 01, then continue with issue 02.
+- Implementation per issues 02–10.
 
 ---
 
@@ -118,8 +119,10 @@ All seven decisions locked. See **Locked decisions** below.
 | Design doc + re-review | ✅ Complete — approve with changes (implementation detail) |
 | **`to-issues`** | ✅ 11 issues in `.scratch/outline-blocks/issues/` |
 | Issue adversarial review | ✅ `issues/REVIEW.md` — findings applied |
+| Upstream suggestion (issue 00) | ✅ Filed: https://github.com/marktext/marktext/issues/4379 |
+| Implementation issue 01 | ✅ PR #1 open: https://github.com/kingdomseed/marktext/pull/1 |
 | Dev smoke test | ❌ Not run |
-| Implementation (issue 01+) | ⏭️ **Next** |
+| Implementation (issue 02+) | ⏭️ **Next** |
 
 ---
 
@@ -287,7 +290,7 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 #### Minor (folded into PRD rollup ✅)
 
-- Collapsed-cursor Tab; typed-space code trap vs Tab; i18n `en.json` only; `OUTLINE-BLOCKS-PLAN.md` §5–§7 superseded.
+- Collapsed-cursor Tab; typed-space code trap vs Tab; bundled source locale coverage; `OUTLINE-BLOCKS-PLAN.md` §5–§7 superseded.
 
 ---
 

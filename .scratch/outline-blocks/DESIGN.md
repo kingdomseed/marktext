@@ -43,7 +43,6 @@ The implementation mirrors proven MarkText patterns: ordered-list export (`norma
 - Detection hints when pref off and file has marker-like lines (AR-10).
 - Auto outline on new documents (US-9 dropped, AR-11).
 - Mid-session re-import when enabling pref on an open doc.
-- Community i18n beyond `en.json` for initial upstream PR.
 
 ---
 
@@ -408,7 +407,7 @@ outlineBlocksEnabled: false
 }
 ```
 
-Also add to `packages/desktop/static/preference.json` default and `en.json` labels in Markdown → Extensions section (footnote pattern).
+Also add to `packages/desktop/static/preference.json` default and bundled locale labels in Markdown → Extensions section (footnote pattern).
 
 ### Markdown on disk (examples)
 
@@ -587,7 +586,7 @@ Each PR targets `develop` on the fork, passes `pnpm run lint` + tests, and inclu
 
 - `packages/desktop/src/main/preferences/schema.json` — add `outlineBlocksEnabled`
 - `packages/desktop/static/preference.json` — default `false`
-- `packages/desktop/static/locales/en.json` — label + description (Extensions section)
+- `packages/desktop/static/locales/*.json` — label + description (Extensions section; source locale files only)
 - `packages/desktop/src/renderer/src/prefComponents/markdown/index.vue` — bool toggle
 - `packages/muyajs/lib/config/index.js` — `MUYA_DEFAULT_OPTION.outlineBlocksEnabled: false`
 - `packages/desktop/src/renderer/src/components/editorWithTabs/editor.vue` — `watch(outlineBlocksEnabled)` → `setOptions({ outlineBlocksEnabled }, true)`; pass in initial `setOptions` block (~1172)
@@ -696,7 +695,7 @@ Each PR targets `develop` on the fork, passes `pnpm run lint` + tests, and inclu
 - `packages/muyajs/lib/ui/frontMenu/config.js` — Turn Into entry
 - `packages/muyajs/lib/ui/frontMenu/index.js` — filter when pref off
 - `packages/muyajs/lib/contentState/paragraphCtrl.js` — `handleOutlineMenu`, `isAllowedTransformation`, `getTypeFromBlock` updates per AR-8
-- `en.json` quick-insert + front-menu strings
+- Bundled locale quick-insert + front-menu strings
 
 **Dependencies:** PR 5, PR 1  
 **Verifiable:** `@` and Turn Into hidden when off; turn-into/out matrix works; list pivot denied.

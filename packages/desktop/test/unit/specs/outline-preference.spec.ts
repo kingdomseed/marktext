@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'fs'
+import { readdirSync, readFileSync } from 'fs'
 import { resolve } from 'path'
 import Muya from 'muya/lib'
 import { MUYA_DEFAULT_OPTION } from 'muya/lib/config'
 
 const schemaPath = resolve(__dirname, '../../../src/main/preferences/schema.json')
-const enLocalePath = resolve(__dirname, '../../../static/locales/en.json')
+const localesPath = resolve(__dirname, '../../../static/locales')
+const enLocalePath = resolve(localesPath, 'en.json')
 
 describe('outline preference', () => {
   it('MUYA_DEFAULT_OPTION.outlineBlocksEnabled defaults to false', () => {
@@ -15,9 +16,10 @@ describe('outline preference', () => {
   it('setOptions updates outlineBlocksEnabled without re-parsing open document', () => {
     const container = document.createElement('div')
     document.body.appendChild(container)
+    let muya
 
     try {
-      const muya = new Muya(container, { markdown: '# Hello\n\nWorld' })
+      muya = new Muya(container, { markdown: '# Hello\n\nWorld' })
       const blocksBefore = JSON.stringify(muya.contentState.getBlocks())
 
       muya.setOptions({ outlineBlocksEnabled: true }, true)
@@ -25,8 +27,10 @@ describe('outline preference', () => {
       expect(muya.options.outlineBlocksEnabled).to.equal(true)
       expect(JSON.stringify(muya.contentState.getBlocks())).to.equal(blocksBefore)
     } finally {
-      if (container.parentNode === document.body) {
-        document.body.removeChild(container)
+      const muyaContainer = muya?.container
+      muya?.destroy()
+      if (muyaContainer?.parentNode === document.body) {
+        document.body.removeChild(muyaContainer)
       }
     }
   })
@@ -52,5 +56,23 @@ describe('outline preference', () => {
     expect(en.preferences.search.items.outlineBlocksEnabled).to.equal(
       'Enable academic-style outline blocks (Roman/letter/decimal hierarchy with block-level Tab indent)'
     )
+  })
+
+  it('all source locale files define outlineBlocksEnabled keys', () => {
+    const localeFiles = readdirSync(localesPath)
+      .filter(file => file.endsWith('.json') && !file.endsWith('.min.json'))
+
+    localeFiles.forEach(file => {
+      const locale = JSON.parse(readFileSync(resolve(localesPath, file), 'utf-8'))
+      const extensions = locale.preferences.markdown.extensions
+      const searchItems = locale.preferences.search.items
+
+      expect(extensions.outlineBlocksEnabled, file).to.be.a('string')
+      expect(extensions.outlineBlocksEnabled, file).to.not.equal('')
+      expect(extensions.outlineBlocksEnabledNotes, file).to.be.a('string')
+      expect(extensions.outlineBlocksEnabledNotes, file).to.not.equal('')
+      expect(searchItems.outlineBlocksEnabled, file).to.be.a('string')
+      expect(searchItems.outlineBlocksEnabled, file).to.not.equal('')
+    })
   })
 })

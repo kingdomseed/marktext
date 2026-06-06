@@ -1,6 +1,6 @@
 # File upstream suggestion issue
 
-**Status:** ready-for-human  
+**Status:** filed  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-57
 
@@ -26,10 +26,10 @@ Record the upstream issue number in this file under Comments when filed.
 
 ## Acceptance criteria
 
-- [ ] Suggestion issue opened on `marktext/marktext`
+- [x] Suggestion issue opened on `marktext/marktext`
 - [ ] Issue body includes inline ADR-0001 summary and marker table from PRD/CONTEXT
 - [ ] Issue notes planned PR will `Closes #NNN` and include demo recordings (pref on/off, Tab/Enter/Shift+Tab, save/reopen, export)
-- [ ] Issue number and URL recorded below
+- [x] Issue number and URL recorded below
 
 ## Blocked by
 
@@ -39,6 +39,7 @@ None — can start immediately (parallel with implementation)
 
 | Field | Value |
 |-------|-------|
-| Upstream issue # | _(fill when filed)_ |
-| Upstream URL | _(fill when filed)_ |
-| Filed date | _(fill when filed)_ |
+| Upstream issue # | `marktext/marktext#4379` |
+| Upstream URL | https://github.com/marktext/marktext/issues/4379 |
+| Filed date | 2026-06-06 |
+| Follow-up note | Filed issue covers the user-facing request; full ADR marker table, group-start sentinel, and PR recording note are not yet added upstream. |
