@@ -1,7 +1,7 @@
 # Handoff — MarkText Outline Blocks
 
 > **Created:** 2026-06-06  
-> **Updated:** 2026-06-06 (AR-1–AR-11 complete; PRD rollup; ready for `to-issues`)
+> **Updated:** 2026-06-06 (issues published; adversarial review applied)
 > **Repo:** `/Users/jholt/marktext` (fork: https://github.com/kingdomseed/marktext)  
 > **Relaunch:** Read this file + `AGENTS.md` + `CONTEXT.md` + `.scratch/outline-blocks/PRD.md` first.
 
@@ -31,6 +31,7 @@ I.   Top-level (Roman)
 | Domain glossary | `CONTEXT.md` | Terms only — grill-derived vocabulary |
 | PRD (spec) | `.scratch/outline-blocks/PRD.md` | **`ready-for-agent`** — AR-1–AR-11 rollup; source for `to-issues` |
 | Design doc | `.scratch/outline-blocks/DESIGN.md` | Implementation architecture + 10-PR plan |
+| Implementation issues | `.scratch/outline-blocks/issues/` | 11 slices (00–10); TDD-first; `REVIEW.md` |
 | Persistence ADR | `docs/adr/0001-outline-markdown-serialization.md` | Accepted |
 | Investigation plan | `docs/OUTLINE-BLOCKS-PLAN.md` | §1–§4 historical; §5–§7 **superseded** by PRD |
 | Agent guide | `AGENTS.md` | Build/run + outline code paths |
@@ -67,11 +68,16 @@ All seven decisions locked. See **Locked decisions** below.
 - Re-review: completeness + codebase alignment — no blockers for `to-issues`.
 - Design doc: `.scratch/outline-blocks/DESIGN.md` (hybrid export seam, PR stack).
 
+### Phase 6 — to-issues + adversarial review (complete)
+
+- Published 11 issues under `.scratch/outline-blocks/issues/` (00 upstream HITL, 01–10 AFK).
+- Each issue starts with **TDD approach** (RED → GREEN vertical slices).
+- Adversarial review (`act-workflow-refine-spec` + plan-splitting) — findings in `issues/REVIEW.md`, applied to all issues.
+
 ### Not done yet
 
-- **`to-issues`** — break PRD into `.scratch/outline-blocks/issues/`.
 - Dev smoke test (`pnpm install && pnpm dev`).
-- Upstream suggestion issue + implementation.
+- Upstream suggestion issue (issue 00) + implementation per issues 01–10.
 
 ---
 
@@ -85,9 +91,10 @@ All seven decisions locked. See **Locked decisions** below.
 | ADR-0001 (serialization) | ✅ Accepted |
 | PRD rollup | ✅ `ready-for-agent` |
 | Design doc + re-review | ✅ Complete — approve with changes (implementation detail) |
-| **`to-issues`** | ⏭️ **Next** |
+| **`to-issues`** | ✅ 11 issues in `.scratch/outline-blocks/issues/` |
+| Issue adversarial review | ✅ `issues/REVIEW.md` — findings applied |
 | Dev smoke test | ❌ Not run |
-| Code changes | ❌ Not started |
+| Implementation (issue 01+) | ⏭️ **Next** |
 
 ---
 
@@ -261,13 +268,20 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Next step
 
-**`/to-issues`** — break `.scratch/outline-blocks/PRD.md` into grabbable issues under `.scratch/outline-blocks/issues/`, using `.scratch/outline-blocks/DESIGN.md` PR plan as ordering guide.
+**Issue 00** (HITL): file upstream suggestion on `marktext/marktext`.  
+**Issue 01** (AFK): `outlineBlocksEnabled` preference + engine wire — TDD-first per `.scratch/outline-blocks/issues/01-outline-preference-engine-wire.md`.
 
-## After `to-issues` (in order)
+## Implementation order
 
-1. Smoke test: `pnpm install && pnpm dev`.
-2. File **upstream suggestion issue** (marktext/marktext) — template in PRD Further Notes.
-3. Implement per issues; PR to `develop` with screen recordings per CONTRIBUTING.
+```
+00 (upstream, parallel) ─────────────────────────────┐
+01 → 02 ─┬→ 03 → 04 → 05 → 08 → 10 ────────────────┤
+         └→ 06 → 07 → 09 ──────────────────────────┘
+```
+
+1. Smoke test: `pnpm install && pnpm dev` (optional before 01).
+2. Implement issues 01–10 per TDD slices; `pnpm run lint` + tests each PR.
+3. Issue 10: E2E + recordings + upstream PR with `Closes #NNN`.
 
 ### Optional polish (non-blocking)
 
@@ -306,10 +320,10 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 | Skill | When |
 |-------|------|
-| **to-issues** | **Now** — break PRD into implementation issues |
-| **implement** / **tdd** | After issues filed |
-| **review** / **check-work** | Before upstream PR |
-| **grill-with-docs** | Only if new open decisions emerge |
+| **tdd** | **Now** — every issue starts with RED → GREEN slices |
+| **implement** | Per issue 01–10 |
+| **review** / **check-work** | Before each PR merge + upstream PR |
+| **grill-with-docs** | Only if new open decisions emerge during implementation |
 
 ---
 
