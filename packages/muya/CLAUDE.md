@@ -1,5 +1,7 @@
 # CLAUDE.md (packages/muya)
 
+> **Agents:** Prefer [`AGENTS.md`](./AGENTS.md) — agent-oriented copy with outline-fork cross-links.
+
 This file provides guidance to Claude Code when working inside `packages/muya`.
 
 > **Location.** `packages/muya` is the TypeScript rewrite of muya (upstream: <https://github.com/marktext/muya>), migrated into this marktext monorepo. The legacy JS engine `packages/muyajs` (`@marktext/muyajs`) is still what the desktop app consumes via the `muya/` alias; the two engines coexist until callers are migrated. Treat `packages/muya` as a self-contained package — do not import from or wire into desktop code yet.
