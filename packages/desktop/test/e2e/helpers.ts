@@ -60,6 +60,8 @@ export interface LaunchOptions {
   // should opt in — otherwise existing specs would silently ignore renderer
   // exceptions that previously surfaced as a dialog (a hidden regression risk).
   suppressErrorDialog?: boolean
+  // Caller-provided directories are treated as caller-owned and are not
+  // automatically removed by launchElectron.
   userDataDir?: string
   preferences?: Record<string, unknown>
 }
@@ -89,8 +91,7 @@ export const launchElectron = async(
   const executablePath = getElectronPath()
   // Pass project root as entry so Electron reads package.json and getAppPath() returns project root.
   // Passing out/main/index.js directly bypasses package.json and breaks __static path resolution.
-  const userDataDir = options.userDataDir || trackTempDir(getTempPath())
-  trackTempDir(userDataDir)
+  const userDataDir = options.userDataDir ?? trackTempDir(getTempPath())
   if (options.preferences) {
     seedPreferences(userDataDir, options.preferences)
   }
@@ -425,7 +426,10 @@ export const waitForDiskMarkdown = async(
     await new Promise((resolve) => setTimeout(resolve, 200))
   }
 
-  return markdown
+  throw new Error(
+    `Timed out after ${timeoutMs}ms waiting for disk markdown at ${filePath}. ` +
+      `Last content:\n${markdown}`
+  )
 }
 
 export const readDiskMarkdown = (filePath: string): string => {
