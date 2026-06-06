@@ -966,6 +966,7 @@
       "horizontalLine": "Línea Horizontal",
       "frontMatter": "Metadatos",
       "resetParagraph": "Restablecer Párrafo",
+      "restartOutlineGroup": "Reiniciar grupo de esquema",
       "mathBlock": "Bloque matemático",
       "horizontalRule": "Línea horizontal"
     },

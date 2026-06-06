@@ -75,6 +75,10 @@ export default function renderIcon(block, t) {
       icon = orderListIcon
       break
     }
+    case 'outline-item': {
+      icon = orderListIcon
+      break
+    }
     case 'blockquote': {
       icon = quoteIcon
       break

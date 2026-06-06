@@ -968,6 +968,7 @@
       "horizontalLine": "水平線",
       "frontMatter": "フロントマター",
       "resetParagraph": "段落をリセット",
+      "restartOutlineGroup": "アウトライングループを再開",
       "mathBlock": "数式ブロック",
       "horizontalRule": "水平線"
     },

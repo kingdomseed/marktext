@@ -175,10 +175,12 @@ describe('outline WYSIWYG render', () => {
 
       const outline = harness.editor.querySelector('.ag-outline-item') as HTMLDivElement
       const frontIcon = outline.querySelector('.ag-front-icon') as HTMLAnchorElement
+      const frontIconImage = frontIcon.querySelector('img.icon-inner') as HTMLImageElement
       const bodyParagraph = outline.querySelector('p.ag-paragraph') as HTMLParagraphElement
 
       expect(outline.classList.contains('ag-active')).to.equal(true)
       expect(frontIcon.getAttribute('contenteditable')).to.equal('false')
+      expect(frontIconImage.getAttribute('src')).to.include('order_list')
       expect(getComputedStyle(frontIcon).display).to.equal('block')
       expect(['0', '0px']).to.include(getComputedStyle(bodyParagraph).marginTop)
     } finally {

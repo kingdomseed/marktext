@@ -968,6 +968,7 @@
       "horizontalLine": "수평선",
       "frontMatter": "프론트 매터",
       "resetParagraph": "단락 재설정",
+      "restartOutlineGroup": "개요 그룹 다시 시작",
       "mathBlock": "수식 블록",
       "horizontalRule": "수평선"
     },

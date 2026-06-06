@@ -973,6 +973,7 @@
       "horizontalLine": "Horizontal Line",
       "frontMatter": "Front Matter",
       "resetParagraph": "Reset Paragraph",
+      "restartOutlineGroup": "Restart Outline Group",
       "mathBlock": "Math Block",
       "horizontalRule": "Horizontal Rule"
     },

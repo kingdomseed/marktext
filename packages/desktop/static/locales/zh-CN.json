@@ -976,6 +976,7 @@
       "horizontalRule": "水平分割线",
       "horizontalLine": "水平分割线",
       "frontMatter": "前置元数据",
+      "restartOutlineGroup": "重新开始大纲组",
       "resetParagraph": "重置段落"
     },
     "format": {

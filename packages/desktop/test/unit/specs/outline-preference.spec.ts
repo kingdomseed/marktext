@@ -91,6 +91,8 @@ describe('outline preference', () => {
       expect(locale.frontMenu.outlineItem, file).to.not.equal('')
       expect(locale.frontMenu.newOutlineGroup, file).to.be.a('string')
       expect(locale.frontMenu.newOutlineGroup, file).to.not.equal('')
+      expect(locale.commands.paragraph.restartOutlineGroup, file).to.be.a('string')
+      expect(locale.commands.paragraph.restartOutlineGroup, file).to.not.equal('')
     })
   })
 })

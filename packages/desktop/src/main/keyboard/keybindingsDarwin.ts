@@ -64,6 +64,7 @@ const keybindings: Map<string, string> = new Map([
   ['paragraph.bullet-list', 'Command+Option+U'],
   ['paragraph.task-list', 'Command+Option+X'],
   ['paragraph.loose-list-item', 'Command+Option+L'],
+  ['paragraph.restart-outline-group', 'Command+Option+Shift+G'],
   ['paragraph.paragraph', 'Command+0'],
   ['paragraph.horizontal-line', 'Command+Option+-'],
   ['paragraph.front-matter', 'Command+Option+Y'],
