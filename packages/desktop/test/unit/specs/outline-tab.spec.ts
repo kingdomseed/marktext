@@ -17,6 +17,7 @@ const createContentState = (
     eventCenter: unknown
     container: HTMLDivElement
     blur(): void
+    dispatchChange?: () => void
     contentState?: ContentState
   } = {
     options: Object.assign({}, MUYA_DEFAULT_OPTION, { listIndentation }),
@@ -51,6 +52,11 @@ const focusOutlineBody = (contentState: ContentState, item: OutlineBlock, offset
     end: { key: bodyKey, offset },
     isEdit: false
   }
+}
+
+const setDispatchChange = (contentState: ContentState, dispatchChange: () => void) => {
+  const state = contentState as ContentState & { muya: { dispatchChange?: () => void } }
+  state.muya.dispatchChange = dispatchChange
 }
 
 const outlineMarkers = (contentState: ContentState) => {
@@ -286,6 +292,35 @@ describe('outline Tab / Shift+Tab', () => {
 
     expect(outlineDepths(contentState)).to.deep.equal([2])
     expect(contentState.getBlocks()[0].children[0].children[0].text).to.equal('Body')
+  })
+
+  it('tabHandler dispatches change when outline Tab changes depth', () => {
+    const dispatchChange = vi.fn()
+    const contentState = createContentState((cs) => {
+      const item = cs.createOutlineItem(1)
+      const bodyKey = item.children[0].children[0].key
+      item.children[0].children[0].text = 'Body'
+      setRootBlocks(cs, [item])
+      focusOutlineBody(cs, item, 4)
+      setDispatchChange(cs, dispatchChange)
+      cs.partialRender = () => undefined
+
+      vi.spyOn(selection, 'getCursorRange').mockReturnValue({
+        start: { key: bodyKey, offset: 4 },
+        end: { key: bodyKey, offset: 4 }
+      })
+
+      const result = cs.tabHandler({
+        preventDefault() {},
+        shiftKey: false,
+        isComposing: false
+      })
+
+      expect(result).to.equal(true)
+    })
+
+    expect(outlineDepths(contentState)).to.deep.equal([2])
+    expect(dispatchChange).toHaveBeenCalledTimes(1)
   })
 
   it('tabHandler Shift+Tab at depth 1 is a no-op instead of indenting', () => {

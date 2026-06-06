@@ -403,7 +403,11 @@ const tabCtrl = (ContentState) => {
         : null
       if (outlineItem) {
         if (outlineItem.depth > 1) {
-          return this.outdentOutlineItem(outlineItem)
+          const result = this.outdentOutlineItem(outlineItem)
+          if (result) {
+            this.muya.dispatchChange?.()
+          }
+          return result
         }
         return
       }
@@ -525,7 +529,11 @@ const tabCtrl = (ContentState) => {
       : null
     if (outlineItem) {
       if (outlineItem.depth < 7) {
-        return this.indentOutlineItem(outlineItem)
+        const result = this.indentOutlineItem(outlineItem)
+        if (result) {
+          this.muya.dispatchChange?.()
+        }
+        return result
       }
       return
     }

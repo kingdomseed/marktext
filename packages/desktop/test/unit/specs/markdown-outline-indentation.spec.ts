@@ -124,6 +124,16 @@ describe('markdown outline export round-trip', () => {
     expect(roundTripMarkdown(markdown, 1)).to.equal(markdown)
   })
 
+  it('exports a single depth-2 outline item with an A. marker', () => {
+    const ctx = createMuyaContext(1, { outlineBlocksEnabled: true })
+    const item = ctx.contentState.createOutlineItem(2)
+    item.children[0].children[0].text = 'Persist me'
+    ctx.contentState.setBlocks([item])
+
+    const exported = new ExportMarkdown(ctx.contentState.getBlocks(), 1).generate()
+    expect(exported).to.equal('   A. Persist me\n')
+  })
+
   it.each([1, 2, 'dfm'] as const)(
     'round-trips the minimal index fixture tree at listIndentation %s',
     (listIndentation) => {

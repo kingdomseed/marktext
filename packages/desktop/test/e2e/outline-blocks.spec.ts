@@ -7,7 +7,6 @@ import {
   insertOutlineViaQuickInsert,
   launchWithDoc,
   launchWithMarkdown,
-  pastePlainTextAtSelection,
   relaunchDocument,
   saveDocument,
   typeInOutlineBody,
@@ -54,26 +53,17 @@ test.describe('Outline blocks primary flow', () => {
       await focusOutlineBody(page)
       await page.keyboard.press('Tab')
       await page.waitForTimeout(300)
-      // Nudge the editor so Pinia receives the latest exported markdown before save.
-      await page.keyboard.type(' ')
-      await page.keyboard.press('Backspace')
-      await page.waitForTimeout(300)
 
       const afterTab = await getOutlineItemsInEditor(page)
       expect(afterTab[0]?.depth).toBe('2')
       expect(afterTab[0]?.marker).toBe('A.')
 
-      const exportedBeforeSave = await getMarkdownContent(page, app)
-      expect(exportedBeforeSave).toContain('A.')
-      expect(exportedBeforeSave).toContain('Persist me')
-
       await saveDocument(page, app)
       const saved = await waitForDiskMarkdown(
         filePath,
-        (markdown) => markdown.includes('Persist me')
+        (markdown) => markdown.includes('A. Persist me')
       )
-      expect(saved).toContain('A.')
-      expect(saved).toContain('Persist me')
+      expect(saved).toContain('A. Persist me')
 
       await app.close()
       app = null
@@ -179,7 +169,20 @@ test.describe('Outline blocks primary flow', () => {
       for (let i = 0; i < 6; i++) {
         await page.keyboard.press('ArrowRight')
       }
-      await pastePlainTextAtSelection(page, ' A. footnote ')
+      await page.evaluate((plain) => {
+        const selection = window.getSelection()
+        const anchor = selection?.anchorNode
+        const target = (anchor?.nodeType === Node.TEXT_NODE ? anchor.parentElement : anchor) as
+          | HTMLElement
+          | null
+        if (!target) return
+        const dt = new DataTransfer()
+        dt.setData('text/plain', plain)
+        target.dispatchEvent(
+          new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })
+        )
+      }, ' A. footnote ')
+      await page.waitForTimeout(400)
       const markdown = await getMarkdownContent(page, app)
       expect(markdown).toMatch(/I\. Hello\s+A\. footnote world/)
       expect(markdown).not.toMatch(/\n\s+A\. footnote\n/)

@@ -203,28 +203,38 @@ const outlineCtrl = (ContentState) => {
    * Indent the outline item at the cursor one depth level.
    *
    * @param {Object} [item] Outline item to indent.
-   * @returns {Object|boolean} Render result, or false when no change happened.
+   * @returns {boolean} True when the item changed depth.
    */
   ContentState.prototype.indentOutlineItem = function(item = this.getOutlineItemAtCursor()) {
     if (!item || item.depth >= 7) {
       return false
     }
 
-    return this.reparentingCascade(item, 1) ? this.partialRender() : false
+    if (!this.reparentingCascade(item, 1)) {
+      return false
+    }
+
+    this.partialRender()
+    return true
   }
 
   /**
    * Outdent the outline item at the cursor one depth level.
    *
    * @param {Object} [item] Outline item to outdent.
-   * @returns {Object|boolean} Render result, or false when no change happened.
+   * @returns {boolean} True when the item changed depth.
    */
   ContentState.prototype.outdentOutlineItem = function(item = this.getOutlineItemAtCursor()) {
     if (!item || item.depth <= 1) {
       return false
     }
 
-    return this.reparentingCascade(item, -1) ? this.partialRender() : false
+    if (!this.reparentingCascade(item, -1)) {
+      return false
+    }
+
+    this.partialRender()
+    return true
   }
 
   /**
@@ -597,7 +607,7 @@ const outlineCtrl = (ContentState) => {
    *
    * @param {Object} item Outline item to restart.
    * @param {number} [start=1] Restart marker index for depth-1 Roman marker.
-   * @returns {Object} Render result.
+   * @returns {boolean} True when the group was restarted.
    */
   ContentState.prototype.restartOutlineGroup = function(item, start = 1) {
     if (!item || item.type !== 'outline-item' || item.depth !== 1) {
@@ -606,7 +616,9 @@ const outlineCtrl = (ContentState) => {
 
     item.groupStart = true
     item.start = start
-    return this.partialRender()
+    this.partialRender()
+    this.muya.dispatchChange?.()
+    return true
   }
 
   /**
