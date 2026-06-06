@@ -95,4 +95,10 @@ describe('outline preference', () => {
       expect(locale.commands.paragraph.restartOutlineGroup, file).to.not.equal('')
     })
   })
+
+  it('uses a compact front-menu label for starting a new outline', () => {
+    const locale = JSON.parse(readFileSync(resolve(localesPath, 'en.json'), 'utf-8'))
+
+    expect(locale.frontMenu.newOutlineGroup).to.equal('New Outline')
+  })
 })
