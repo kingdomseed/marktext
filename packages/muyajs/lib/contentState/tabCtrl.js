@@ -398,8 +398,14 @@ const tabCtrl = (ContentState) => {
     const endBlock = this.getBlock(end.key)
 
     if (event.shiftKey && startBlock.functionType !== 'cellContent') {
-      if (this.isOutdentableOutlineItem(startBlock)) {
-        return this.outdentOutlineItem()
+      const outlineItem = this.isCollapse({ start, end })
+        ? this.getOutlineItemForBlock(startBlock)
+        : null
+      if (outlineItem) {
+        if (outlineItem.depth > 1) {
+          return this.outdentOutlineItem(outlineItem)
+        }
+        return
       }
 
       const unindentType = this.isUnindentableListItem(startBlock)
@@ -514,8 +520,14 @@ const tabCtrl = (ContentState) => {
       return this.singleRender(figure)
     }
 
-    if (this.isIndentableOutlineItem()) {
-      return this.indentOutlineItem()
+    const outlineItem = this.isCollapse({ start, end })
+      ? this.getOutlineItemForBlock(startBlock)
+      : null
+    if (outlineItem) {
+      if (outlineItem.depth < 7) {
+        return this.indentOutlineItem(outlineItem)
+      }
+      return
     }
 
     if (this.isIndentableListItem()) {
