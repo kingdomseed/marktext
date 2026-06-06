@@ -1,6 +1,6 @@
 # E2E primary flow and upstream PR prep
 
-**Status:** ready-for-agent  
+**Status:** ready-for-review  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-58, US-59, US-60, US-61, US-62, US-63
 
@@ -34,9 +34,9 @@ Verify JSDoc on outline APIs introduced in PRs 1–9.
 
 ## Acceptance criteria
 
-- [ ] E2E spec passes in Chromium
-- [ ] `pnpm run lint`, `pnpm run test`, `pnpm run test:e2e` pass
-- [ ] JSDoc on new public engine methods (across PR stack)
+- [x] E2E spec passes in Chromium
+- [x] `pnpm run lint`, `pnpm run test`, `pnpm run test:e2e` pass
+- [x] JSDoc on new public engine methods (across PR stack)
 - [ ] Screen recordings: pref on/off, create, Tab/Enter/Shift+Tab, paste literal, save/reopen, source mode, HTML/PDF spot-check, disable-mid-session (AR-5)
 - [ ] PR opened to `marktext/marktext` `develop` with `Closes #NNN`
 

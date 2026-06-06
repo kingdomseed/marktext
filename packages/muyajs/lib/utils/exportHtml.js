@@ -14,6 +14,12 @@ import { validEmoji } from '../ui/emojis'
 import ExportMarkdown from './exportMarkdown'
 import { renderOutlineItemHtml } from './outlineHtml'
 
+/**
+ * Return whether a block tree contains any outline items.
+ *
+ * @param {Object[]|null|undefined} blocks Top-level document blocks.
+ * @returns {boolean} True when at least one outline item is present.
+ */
 export const hasOutlineItems = (blocks) =>
   Array.isArray(blocks) && blocks.some((block) => block.type === 'outline-item')
 
@@ -186,6 +192,13 @@ class ExportHtml {
     return new Parser(markedOptions).parse(tokens)
   }
 
+  /**
+   * Render HTML by interleaving block-tree outline items with marked() fragments.
+   *
+   * @param {Object[]} blocks Top-level document blocks.
+   * @param {string} [toc] Optional table of contents HTML.
+   * @returns {string} Sanitized article HTML.
+   */
   renderHybridHtml(blocks, toc) {
     const listIndentation = this.muya?.options?.listIndentation ?? 1
     const isGitlabCompatibilityEnabled = this.muya?.options?.isGitlabCompatibilityEnabled ?? false

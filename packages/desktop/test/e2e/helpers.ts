@@ -50,6 +50,7 @@ process.on('exit', () => {
 export interface LaunchResult {
   app: ElectronApplication
   page: Page
+  userDataDir: string
 }
 
 export interface LaunchOptions {
@@ -59,6 +60,25 @@ export interface LaunchOptions {
   // should opt in — otherwise existing specs would silently ignore renderer
   // exceptions that previously surfaced as a dialog (a hidden regression risk).
   suppressErrorDialog?: boolean
+  userDataDir?: string
+  preferences?: Record<string, unknown>
+}
+
+/**
+ * Write electron-store preferences before the first app launch.
+ * File name is `preferences.json` under the user-data directory.
+ */
+export const seedPreferences = (
+  userDataDir: string,
+  overrides: Record<string, unknown> = {}
+): void => {
+  const staticPath = path.join(projectRoot, 'static/preference.json')
+  const defaults = JSON.parse(fs.readFileSync(staticPath, 'utf-8')) as Record<string, unknown>
+  fs.mkdirSync(userDataDir, { recursive: true })
+  fs.writeFileSync(
+    path.join(userDataDir, 'preferences.json'),
+    JSON.stringify(Object.assign({}, defaults, overrides))
+  )
 }
 
 export const launchElectron = async(
@@ -69,7 +89,11 @@ export const launchElectron = async(
   const executablePath = getElectronPath()
   // Pass project root as entry so Electron reads package.json and getAppPath() returns project root.
   // Passing out/main/index.js directly bypasses package.json and breaks __static path resolution.
-  const userDataDir = trackTempDir(getTempPath())
+  const userDataDir = options.userDataDir || trackTempDir(getTempPath())
+  trackTempDir(userDataDir)
+  if (options.preferences) {
+    seedPreferences(userDataDir, options.preferences)
+  }
   const args = [projectRoot, '--user-data-dir', userDataDir].concat(userArgs)
   const env: Record<string, string> = {}
   for (const [k, v] of Object.entries(process.env)) if (v !== undefined) env[k] = v
@@ -86,7 +110,7 @@ export const launchElectron = async(
   const page = await app.firstWindow()
   await page.waitForLoadState('domcontentloaded')
   await new Promise((resolve) => setTimeout(resolve, 500))
-  return { app, page }
+  return { app, page, userDataDir }
 }
 
 // Capture renderer-process errors that would otherwise pop the "Unexpected
@@ -342,14 +366,19 @@ export const launchWithDoc = async(
   relativeFixture: string,
   options: LaunchOptions = {}
 ): Promise<LaunchResult> => {
-  const { app, page } = await launchElectron([relativeFixture], options)
+  const { app, page, userDataDir } = await launchElectron([relativeFixture], options)
   await waitForEditor(page)
   await waitForMenuReady(app)
-  return { app, page }
+  return { app, page, userDataDir }
 }
 
 export interface LaunchWithMarkdownResult extends LaunchResult {
   filePath: string
+}
+
+export interface OutlineItemSnapshot {
+  depth: string | null
+  marker: string | null
 }
 
 export const launchWithMarkdown = async(
@@ -357,10 +386,162 @@ export const launchWithMarkdown = async(
   options: LaunchOptions = {}
 ): Promise<LaunchWithMarkdownResult> => {
   const filePath = writeTempMarkdown(markdown)
-  const { app, page } = await launchElectron([filePath], options)
+  const { app, page, userDataDir } = await launchElectron([filePath], options)
   await waitForEditor(page)
   await waitForMenuReady(app)
-  return { app, page, filePath }
+  return { app, page, filePath, userDataDir }
+}
+
+export const relaunchDocument = async(
+  userDataDir: string,
+  filePath: string,
+  options: LaunchOptions = {}
+): Promise<LaunchResult> => {
+  const launchOptions = Object.assign({}, options, { userDataDir })
+  const { app, page } = await launchElectron([filePath], launchOptions)
+  await waitForEditor(page)
+  await waitForMenuReady(app)
+  return { app, page, userDataDir }
+}
+
+export const saveDocument = async(page: Page, app: ElectronApplication): Promise<void> => {
+  await sendIpcToRenderer(app, 'mt::editor-ask-file-save')
+  await page.waitForTimeout(1000)
+}
+
+export const waitForDiskMarkdown = async(
+  filePath: string,
+  predicate: (markdown: string) => boolean,
+  timeoutMs = 5000
+): Promise<string> => {
+  const deadline = Date.now() + timeoutMs
+  let markdown = ''
+
+  while (Date.now() < deadline) {
+    markdown = readDiskMarkdown(filePath)
+    if (predicate(markdown)) {
+      return markdown
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200))
+  }
+
+  return markdown
+}
+
+export const readDiskMarkdown = (filePath: string): string => {
+  return fs.readFileSync(filePath, 'utf-8')
+}
+
+export const insertOutlineViaQuickInsert = async(page: Page): Promise<void> => {
+  await placeCaretInEditor(page)
+  await page.keyboard.type('@')
+  await page.waitForSelector('.ag-quick-insert', { state: 'attached', timeout: 5000 })
+  await page.click('.ag-quick-insert [data-label="outline-item"]')
+  await page.waitForSelector('.editor-component .ag-outline-item', {
+    state: 'attached',
+    timeout: 5000
+  })
+}
+
+export const focusOutlineBody = async(page: Page, itemIndex = 0): Promise<void> => {
+  await page.evaluate((index) => {
+    const items = document.querySelectorAll('.editor-component .ag-outline-item')
+    const item = items[index] as HTMLElement | undefined
+    const span = item?.querySelector('span.ag-paragraph') as HTMLElement | null
+    if (!span) return
+    const range = document.createRange()
+    range.selectNodeContents(span)
+    range.collapse(false)
+    const sel = window.getSelection()
+    if (!sel) return
+    sel.removeAllRanges()
+    sel.addRange(range)
+    document.dispatchEvent(new Event('selectionchange'))
+  }, itemIndex)
+  await page.waitForTimeout(150)
+}
+
+export const typeInOutlineBody = async(page: Page, text: string, itemIndex = 0): Promise<void> => {
+  await focusOutlineBody(page, itemIndex)
+  await page.keyboard.type(text, { delay: 0 })
+  await page.waitForTimeout(200)
+}
+
+export const getOutlineItemsInEditor = async(page: Page): Promise<OutlineItemSnapshot[]> => {
+  return page.evaluate(() => {
+    return Array.from(document.querySelectorAll('.editor-component .ag-outline-item')).map(
+      (element) => ({
+        depth: element.getAttribute('data-depth'),
+        marker: element.querySelector('.ag-outline-marker')?.textContent?.trim() || null
+      })
+    )
+  })
+}
+
+export const pastePlainTextAtSelection = async(page: Page, text: string): Promise<void> => {
+  await page.evaluate((plain) => {
+    const selection = window.getSelection()
+    const anchor = selection?.anchorNode
+    const target = (anchor?.nodeType === Node.TEXT_NODE ? anchor.parentElement : anchor) as
+      | HTMLElement
+      | null
+    if (!target) return
+    const dt = new DataTransfer()
+    dt.setData('text/plain', plain)
+    target.dispatchEvent(
+      new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })
+    )
+  }, text)
+  await page.waitForTimeout(400)
+}
+
+export const pastePlainTextInOutlineBody = async(
+  page: Page,
+  text: string,
+  caretOffset: number,
+  itemIndex = 0
+): Promise<void> => {
+  await page.evaluate(
+    ({ plain, offset, index }) => {
+      const items = document.querySelectorAll('.editor-component .ag-outline-item')
+      const span = items[index]?.querySelector('span.ag-paragraph') as HTMLElement | null
+      if (!span) return
+
+      const range = document.createRange()
+      let remaining = offset
+      const walker = document.createTreeWalker(span, NodeFilter.SHOW_TEXT)
+      let textNode = walker.nextNode()
+
+      while (textNode) {
+        const length = textNode.textContent?.length || 0
+        if (remaining <= length) {
+          range.setStart(textNode, remaining)
+          range.collapse(true)
+          break
+        }
+        remaining -= length
+        textNode = walker.nextNode()
+      }
+
+      if (!textNode) {
+        range.selectNodeContents(span)
+        range.collapse(false)
+      }
+
+      const sel = window.getSelection()
+      if (!sel) return
+      sel.removeAllRanges()
+      sel.addRange(range)
+      document.dispatchEvent(new Event('selectionchange'))
+      const dt = new DataTransfer()
+      dt.setData('text/plain', plain)
+      span.dispatchEvent(
+        new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })
+      )
+    },
+    { plain: text, offset: caretOffset, index: itemIndex }
+  )
+  await page.waitForTimeout(400)
 }
 
 export const sendIpcToRenderer = async(
