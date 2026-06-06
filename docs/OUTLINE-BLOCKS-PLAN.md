@@ -1,6 +1,6 @@
 # Outline Blocks — Investigation & Implementation Plan
 
-> **Status:** Pre-implementation / grill-with-docs phase  
+> **Status:** Investigation archive — **§5–§7 superseded** by `.scratch/outline-blocks/PRD.md` + `docs/HANDOFF.md`
 > **Repo:** Local clone at `/Users/jholt/marktext`  
 > **Goal:** Add academic-style outline editing (I. → A. → 1.) with Tab promoting whole blocks, not inline spaces.
 
@@ -262,9 +262,9 @@ Quick insert / front menu strings live in desktop locale files and muyajs transl
 
 ---
 
-## 5. Proposed implementation surface (draft)
+## 5. Proposed implementation surface (draft) — SUPERSEDED
 
-> **Not decided yet** — subject to grill-with-docs session.
+> **Superseded (2026-06-06):** See PRD Implementation Decisions + `DESIGN.md`. Flat `outline-item` model (not `outline-list` container); depth 1–7; ADR-0001 structural markers.
 
 ### Minimum viable outline block
 
@@ -310,33 +310,15 @@ Options to resolve in grill session:
 
 ---
 
-## 6. Grill-with-docs — open decisions
+## 6. Grill-with-docs — open decisions — SUPERSEDED
 
-Each item below needs a resolved answer before implementation.
-
-| # | Decision | Recommendation (initial) |
-|---|----------|--------------------------|
-| 1 | Implement in `muyajs` only, or muya TS first? | **muyajs** (ships in desktop) |
-| 2 | New block type vs. extend `ol`/`li`? | **New `outline-item`** — lists can't do mixed marker styles |
-| 3 | Marker text in content or computed from depth? | **Computed** — auto `I.`/`A.`/`1.` from depth + sibling index |
-| 4 | Max depth? | **3 levels** (Roman/letter/decimal) matching source documents |
-| 5 | Markdown format for persistence? | **TBD** — needs grill (see §5) |
-| 6 | Opt-in preference or always on? | **Opt-in** — aligns with MarkText minimal-default philosophy |
-| 7 | Upstream PR vs. local fork only? | **Local first**, issue + PR if stable |
+> **All resolved.** Locked answers in `docs/HANDOFF.md` (grill Q1–Q7 + AR-1–AR-11). Glossary in `CONTEXT.md`. Persistence in `docs/adr/0001-outline-markdown-serialization.md`.
 
 ---
 
-## 7. Next steps (ordered)
+## 7. Next steps — SUPERSEDED
 
-- [ ] **Grill session** — resolve open decisions in §6 one at a time
-- [ ] Update `CONTEXT.md` as terminology crystallizes
-- [ ] Create ADR in `docs/adr/` once markdown serialization format is chosen (hard to reverse)
-- [ ] `pnpm install && pnpm dev` — confirm local build works
-- [ ] Spike: add `outline` label to quick insert config (no-op handler) to validate UI wiring
-- [ ] Implement `outline-item` block + `handleOutlineMenu`
-- [ ] Wire Tab/Enter/Shift+Tab in `tabCtrl.js`
-- [ ] Import/export round-trip tests
-- [ ] E2E: create outline via `@` menu, Tab nest, save, reopen
+> **See `docs/HANDOFF.md`.** Next: **`/to-issues`** → implement per `.scratch/outline-blocks/issues/`.
 
 ---
 
