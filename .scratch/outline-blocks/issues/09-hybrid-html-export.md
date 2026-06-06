@@ -1,6 +1,6 @@
 # Hybrid HTML/PDF export seam
 
-**Status:** in-progress  
+**Status:** ready-for-review  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-52, US-53, US-54
 
@@ -37,11 +37,11 @@ HTML and PDF export render outline items with flat markup, correct markers, cumu
 
 ## Acceptance criteria
 
-- [ ] HTML unit tests pass for fixture trees × indent settings
-- [ ] No `<ol>` for outline blocks; sentinel invisible
-- [ ] No-outline regression guard passes
-- [ ] `exportStyle.css` includes outline print styles
-- [ ] `pnpm run lint` and `pnpm run test` pass
+- [x] HTML unit tests pass for fixture trees × indent settings
+- [x] No `<ol>` for outline blocks; sentinel invisible
+- [x] No-outline regression guard passes
+- [x] `exportStyle.css` includes outline print styles
+- [x] `pnpm run lint` and `pnpm run test` pass
 
 ## Blocked by
 
