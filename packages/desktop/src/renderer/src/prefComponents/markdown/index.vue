@@ -63,6 +63,12 @@
           :on-change="(value) => onSelectChange('footnote', value)"
           more="https://pandoc.org/MANUAL.html#footnotes"
         />
+        <bool
+          :description="t('preferences.markdown.extensions.outlineBlocksEnabled')"
+          :notes="t('preferences.markdown.extensions.outlineBlocksEnabledNotes')"
+          :bool="outlineBlocksEnabled"
+          :on-change="(value) => onSelectChange('outlineBlocksEnabled', value)"
+        />
       </template>
     </compound>
 
@@ -152,6 +158,7 @@ const {
   frontmatterType,
   superSubScript,
   footnote,
+  outlineBlocksEnabled,
   isHtmlEnabled,
   isGitlabCompatibilityEnabled,
   sequenceTheme

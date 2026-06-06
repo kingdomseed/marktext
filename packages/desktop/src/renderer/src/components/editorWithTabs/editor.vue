@@ -158,6 +158,7 @@ const {
   frontmatterType,
   superSubScript,
   footnote,
+  outlineBlocksEnabled,
   isHtmlEnabled,
   isGitlabCompatibilityEnabled,
   lineHeight,
@@ -388,6 +389,12 @@ watch(superSubScript, (value, oldValue) => {
 watch(footnote, (value, oldValue) => {
   if (value !== oldValue && editor.value) {
     editor.value.setOptions({ footnote: value }, true)
+  }
+})
+
+watch(outlineBlocksEnabled, (value, oldValue) => {
+  if (value !== oldValue && editor.value) {
+    editor.value.setOptions({ outlineBlocksEnabled: value }, true)
   }
 })
 
@@ -1173,6 +1180,7 @@ onMounted(() => {
     frontmatterType: frontmatterType.value,
     superSubScript: superSubScript.value,
     footnote: footnote.value,
+    outlineBlocksEnabled: outlineBlocksEnabled.value,
     disableHtml: !isHtmlEnabled.value,
     isGitlabCompatibilityEnabled: isGitlabCompatibilityEnabled.value,
     hideQuickInsertHint: hideQuickInsertHint.value,

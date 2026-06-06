@@ -43,6 +43,7 @@ export interface IUserPreferences {
   frontmatterType?: '-' | ';' | '+' | '{'
   superSubScript?: boolean
   footnote?: boolean
+  outlineBlocksEnabled?: boolean
   isHtmlEnabled?: boolean
   isGitlabCompatibilityEnabled?: boolean
   theme?: string

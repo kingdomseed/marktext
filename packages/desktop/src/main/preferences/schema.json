@@ -267,6 +267,11 @@
     "type": "boolean",
     "default": false
   },
+  "outlineBlocksEnabled": {
+    "description": "Markdown-Enable academic-style outline blocks (Roman/letter/decimal hierarchy with block-level Tab indent).",
+    "type": "boolean",
+    "default": false
+  },
   "isHtmlEnabled": {
     "description": "Markdown-Enable HTML rendering",
     "type": "boolean",
