@@ -1,6 +1,6 @@
 # Hybrid HTML/PDF export seam
 
-**Status:** ready-for-review  
+**Status:** ready-for-review
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-52, US-53, US-54
 

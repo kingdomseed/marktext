@@ -48,6 +48,7 @@ declare module 'muya/lib/utils/dompurify' {
 
 declare module 'muya/lib/utils/exportHtml' {
   const ExportHtml: any
+  export const hasOutlineItems: any
   export default ExportHtml
 }
 

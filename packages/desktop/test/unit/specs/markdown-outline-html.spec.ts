@@ -1,4 +1,6 @@
 import { describe, it, expect } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import ContentState from 'muya/lib/contentState'
 import EventCenter from 'muya/lib/eventHandler/event'
 import ExportHtml, { hasOutlineItems } from 'muya/lib/utils/exportHtml'
@@ -73,6 +75,10 @@ const renderHybridHtml = (
 const MINIMAL_INDICES = [1, 1, 1, 1, 1, 1, 1]
 const INDEX_TWO_INDICES = [2, 2, 2, 2, 2, 2, 2]
 const WIDE_INDICES = [14, 10, 42, 10, 14, 99, 26]
+const exportStyleSource = readFileSync(
+  resolve(__dirname, '../../../../muyajs/lib/assets/styles/exportStyle.css'),
+  'utf8'
+)
 
 const expectedMarker = (
   depth: number,
@@ -170,6 +176,16 @@ describe('markdown outline HTML export', () => {
     expect(html).to.include('Restart')
   })
 
+  it('resolves reference-style links across outline fragment boundaries', () => {
+    const ctx = createMuyaContext(1, { outlineBlocksEnabled: true })
+    ctx.contentState.importMarkdown('I. See [site][ref]\n\n[ref]: https://example.com\n')
+    const blocks = ctx.contentState.getBlocks()
+    const html = renderHybridHtml(blocks, 1)
+
+    expect(html).to.include('href="https://example.com"')
+    expect(html).to.include('>site</a>')
+  })
+
   it('does not render indented depth-3 outline lines as code blocks', () => {
     const ctx = createMuyaContext(1, { outlineBlocksEnabled: true })
     const blocks = buildProgrammaticFixture(ctx.contentState, MINIMAL_INDICES)
@@ -228,6 +244,26 @@ describe('markdown outline HTML export', () => {
     expect(html).to.include('class="outline-item"')
     expect(html).to.include('Hybrid')
     expect(html).not.to.include('<ol')
+  })
+
+  it('includes outline export styles without leaking editor outline classes', async() => {
+    const ctx = createMuyaContext(1, { outlineBlocksEnabled: true })
+    const item = ctx.contentState.createOutlineItem(1)
+    item.children[0].children[0].text = 'Styled'
+    const blocks = [item]
+    const markdown = new ExportMarkdown(blocks, 1).generate()
+    const html = await new ExportHtml(markdown, ctx, blocks).generate({
+      title: '',
+      printOptimization: false,
+      extraCss: '',
+      toc: ''
+    })
+
+    expect(html).to.include('class="outline-item"')
+    expect(html).to.include('class="outline-marker"')
+    expect(html).not.to.include('ag-outline-item')
+    expect(exportStyleSource).to.include('.outline-marker')
+    expect(exportStyleSource).to.include('break-inside: avoid')
   })
 
   it('applies cumulative indent styling from listIndentation settings', () => {

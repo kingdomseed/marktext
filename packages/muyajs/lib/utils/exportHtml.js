@@ -1,4 +1,4 @@
-import marked from '../parser/marked'
+import marked, { Lexer, Parser } from '../parser/marked'
 import Prism from 'prismjs'
 import katex from 'katex'
 import 'katex/dist/contrib/mhchem.min.js'
@@ -175,21 +175,39 @@ class ExportHtml {
     }
   }
 
+  _renderMarkdownFragment(markdown, markedOptions, documentRefs) {
+    const tokens = new Lexer(markedOptions).lex(markdown)
+
+    if (documentRefs) {
+      tokens.links = documentRefs.links
+      tokens.footnotes = documentRefs.footnotes
+    }
+
+    return new Parser(markedOptions).parse(tokens)
+  }
+
   renderHybridHtml(blocks, toc) {
     const listIndentation = this.muya?.options?.listIndentation ?? 1
     const isGitlabCompatibilityEnabled = this.muya?.options?.isGitlabCompatibilityEnabled ?? false
     const exporter = new ExportMarkdown(blocks, listIndentation, isGitlabCompatibilityEnabled)
+    const outlineRenderMetaMap = exporter.outlineRenderMetaMap
     const markedOptions = this._getMarkedOptions(toc)
+    const documentTokens = new Lexer(markedOptions).lex(this.markdown)
+    const documentRefs = {
+      links: documentTokens.links,
+      footnotes: documentTokens.footnotes
+    }
     const parts = []
     let i = 0
 
     while (i < blocks.length) {
       if (blocks[i].type === 'outline-item') {
         const block = blocks[i]
+        const renderMeta = outlineRenderMetaMap.get(block)
         const bodyMarkdown = exporter.translateBlocks2Markdown(block.children)
-        let bodyHtml = marked(bodyMarkdown, markedOptions)
+        let bodyHtml = this._renderMarkdownFragment(bodyMarkdown, markedOptions, documentRefs)
         bodyHtml = sanitize(bodyHtml, EXPORT_DOMPURIFY_CONFIG, false)
-        parts.push(renderOutlineItemHtml(block, blocks, listIndentation, bodyHtml))
+        parts.push(renderOutlineItemHtml(block, renderMeta, bodyHtml))
         i++
       } else {
         const run = []
@@ -198,7 +216,7 @@ class ExportHtml {
           i++
         }
         const markdownFragment = exporter.translateBlocks2Markdown(run)
-        let html = marked(markdownFragment, markedOptions)
+        let html = this._renderMarkdownFragment(markdownFragment, markedOptions, documentRefs)
         html = sanitize(html, EXPORT_DOMPURIFY_CONFIG, false)
         parts.push(html)
       }
