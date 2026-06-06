@@ -1,9 +1,33 @@
 # Handoff — MarkText Outline Blocks
 
 > **Created:** 2026-06-06  
-> **Updated:** 2026-06-06 (issues published; adversarial review applied)
+> **Updated:** 2026-06-06 (orchestration workflow added)
 > **Repo:** `/Users/jholt/marktext` (fork: https://github.com/kingdomseed/marktext)  
 > **Relaunch:** Read this file + `AGENTS.md` + `CONTEXT.md` + `.scratch/outline-blocks/PRD.md` first.
+
+---
+
+## Agent role — orchestration (read every session)
+
+**I am the orchestrator. I do not implement AFK issue work myself.**
+
+My job each session:
+
+1. **Spawn subagents** to complete the current AFK issue (`.scratch/outline-blocks/issues/NN-*.md`). One issue per cycle unless dependencies allow parallel tracks. Subagents follow TDD slices in the issue file.
+2. **Spawn review agents** on the subagents' work. Reviewers check:
+   - Matches codebase conventions (`AGENTS.md`, existing patterns in touched files)
+   - Simple — YAGNI, KISS; no speculative abstractions
+   - No new technical debt or workarounds that bypass established patterns
+3. **Review agents write findings to docs** — e.g. `.scratch/outline-blocks/reviews/PR-NN-review.md`. These files are **temporary**; delete after findings are incorporated.
+4. **I incorporate** appropriate reviewer changes into the code (or send subagents back with specific fixes). I do not rubber-stamp review output.
+5. **Open a PR** into the fork (`kingdomseed/marktext`), one PR per issue slice where practical, targeting `feat/outline-editing-setup` or a child branch per DESIGN PR plan.
+6. **Final step per PR:** run Devin review and save output locally:
+   ```bash
+   npx devin-review https://github.com/kingdomseed/marktext/pull/NNN
+   ```
+   Write the result to `.scratch/outline-blocks/reviews/devin-review-PR-NNN.md` for human review before merge.
+
+**HITL issue 00** (upstream suggestion) is user-driven; orchestrator may assist but does not substitute for the user filing on `marktext/marktext`.
 
 ---
 
@@ -32,6 +56,7 @@ I.   Top-level (Roman)
 | PRD (spec) | `.scratch/outline-blocks/PRD.md` | **`ready-for-agent`** — AR-1–AR-11 rollup; source for `to-issues` |
 | Design doc | `.scratch/outline-blocks/DESIGN.md` | Implementation architecture + 10-PR plan |
 | Implementation issues | `.scratch/outline-blocks/issues/` | 11 slices (00–10); TDD-first; `REVIEW.md` |
+| PR / Devin reviews (temp) | `.scratch/outline-blocks/reviews/` | Review-agent + `devin-review` output; delete after incorporated |
 | Persistence ADR | `docs/adr/0001-outline-markdown-serialization.md` | Accepted |
 | Investigation plan | `docs/OUTLINE-BLOCKS-PLAN.md` | §1–§4 historical; §5–§7 **superseded** by PRD |
 | Agent guide | `AGENTS.md` | Build/run + outline code paths |
@@ -318,12 +343,13 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Skills for this phase
 
-| Skill | When |
-|-------|------|
-| **tdd** | **Now** — every issue starts with RED → GREEN slices |
-| **implement** | Per issue 01–10 |
-| **review** / **check-work** | Before each PR merge + upstream PR |
-| **grill-with-docs** | Only if new open decisions emerge during implementation |
+| Skill | When | Who |
+|-------|------|-----|
+| **tdd** | Subagents follow RED → GREEN slices in each issue | Subagent |
+| **implement** | Spawn subagent per AFK issue 01–10 | Orchestrator spawns |
+| **review** / **check-work** | Spawn review agent after each implementation PR | Orchestrator spawns |
+| **grill-with-docs** | Only if new open decisions emerge | Orchestrator + user |
+| **devin-review** | Final gate per PR before merge | Orchestrator runs `npx devin-review` |
 
 ---
 
