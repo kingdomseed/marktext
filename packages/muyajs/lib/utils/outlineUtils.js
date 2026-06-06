@@ -2,15 +2,30 @@ const ROMAN_VALUES = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1]
 const ROMAN_UPPER = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I']
 const ROMAN_LOWER = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i']
 
+// Some marker styles overlap by design: `I.` is both upper Roman and upper
+// alpha, and `i.` is both lower alpha and lower Roman. Import callers must
+// pair marker style with indent depth via `depthFromIndent`.
 const MARKER_PATTERNS = [
   /^[IVXLCDM]+\.$/,
-  /^[A-Z]\.$/,
+  /^[A-Z]+\.$/,
   /^\d+\.$/,
-  /^[a-z]\.$/,
+  /^[a-z]+\.$/,
   /^[ivxlcdm]+\.$/,
   /^\(\d+\)$/,
-  /^\([a-z]\)$/
+  /^\([a-z]+\)$/
 ]
+
+const validateDepth = (depth) => {
+  if (!Number.isInteger(depth) || depth < 1 || depth > 7) {
+    throw new RangeError(`Outline depth must be 1-7, got ${depth}`)
+  }
+}
+
+const validateIndex = (index) => {
+  if (!Number.isInteger(index) || index < 1) {
+    throw new RangeError(`Outline marker index must be a positive integer, got ${index}`)
+  }
+}
 
 const toRoman = (num, upper = true) => {
   const syms = upper ? ROMAN_UPPER : ROMAN_LOWER
@@ -27,24 +42,39 @@ const toRoman = (num, upper = true) => {
   return result
 }
 
+const toAlpha = (num, upper = true) => {
+  let n = num
+  let result = ''
+  const charCodeOffset = upper ? 65 : 97
+
+  while (n > 0) {
+    n -= 1
+    result = String.fromCharCode(charCodeOffset + (n % 26)) + result
+    n = Math.floor(n / 26)
+  }
+
+  return result
+}
+
 const formatMarker = (depth, index) => {
+  validateDepth(depth)
+  validateIndex(index)
+
   switch (depth) {
     case 1:
       return `${toRoman(index, true)}.`
     case 2:
-      return `${String.fromCharCode(64 + index)}.`
+      return `${toAlpha(index, true)}.`
     case 3:
       return `${index}.`
     case 4:
-      return `${String.fromCharCode(96 + index)}.`
+      return `${toAlpha(index, false)}.`
     case 5:
       return `${toRoman(index, false)}.`
     case 6:
       return `(${index})`
     case 7:
-      return `(${String.fromCharCode(96 + index)})`
-    default:
-      throw new RangeError(`Outline depth must be 1–7, got ${depth}`)
+      return `(${toAlpha(index, false)})`
   }
 }
 
@@ -66,10 +96,18 @@ const listIndentPadding = (markerLen, listIndentation) => {
     return Math.max(0, 4 - markerLen)
   }
 
-  return Math.max(0, Number(listIndentation) - 1)
+  const count =
+    typeof listIndentation === 'number' ? Math.min(Math.max(listIndentation, 1), 4) : 1
+  return Math.max(0, count - 1)
 }
 
-export const indentForDepth = (depth, listIndentation) => {
+const markerForIndent = (ancestorMarkers, depth) => {
+  return ancestorMarkers[depth - 1] || formatMarker(depth, 1)
+}
+
+export const indentForDepth = (depth, listIndentation, ancestorMarkers = []) => {
+  validateDepth(depth)
+
   if (depth <= 1) {
     return 0
   }
@@ -77,7 +115,7 @@ export const indentForDepth = (depth, listIndentation) => {
   let indent = 0
 
   for (let d = 1; d < depth; d++) {
-    const parentMarker = formatMarker(d, 1)
+    const parentMarker = markerForIndent(ancestorMarkers, d)
     const parentMarkerLen = markerWidth(parentMarker)
     indent += parentMarkerLen + listIndentPadding(parentMarkerLen, listIndentation)
   }
@@ -93,10 +131,10 @@ export const markerMatchesDepth = (marker, depth) => {
   return MARKER_PATTERNS[depth - 1].test(marker)
 }
 
-export const depthFromIndent = (leadingSpaces, marker, listIndentation) => {
+export const depthFromIndent = (leadingSpaces, marker, listIndentation, ancestorMarkers = []) => {
   for (let depth = 1; depth <= 7; depth++) {
     if (
-      leadingSpaces === indentForDepth(depth, listIndentation) &&
+      leadingSpaces === indentForDepth(depth, listIndentation, ancestorMarkers) &&
       markerMatchesDepth(marker, depth)
     ) {
       return depth

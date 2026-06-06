@@ -354,7 +354,18 @@ class ContentState {
     return pBlock
   }
 
+  /**
+   * Create a flat outline item block with a paragraph body.
+   *
+   * @param {number} depth Outline depth from 1 to 7.
+   * @param {Object} options Outline restart metadata.
+   * @returns {Object} The outline item block.
+   */
   createOutlineItem(depth = 1, options = {}) {
+    if (!Number.isInteger(depth) || depth < 1 || depth > 7) {
+      throw new RangeError(`Outline depth must be 1-7, got ${depth}`)
+    }
+
     const item = this.createBlock('outline-item', {
       depth,
       groupStart: options.groupStart || false,

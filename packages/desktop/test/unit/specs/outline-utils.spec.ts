@@ -43,6 +43,12 @@ describe('outlineUtils', () => {
     expect(computeMarker({ depth: 7 }, { siblingIndex: 0 })).to.equal('(a)')
   })
 
+  it('computes alphabetic markers past Z', () => {
+    expect(computeMarker({ depth: 2 }, { siblingIndex: 26 })).to.equal('AA.')
+    expect(computeMarker({ depth: 4 }, { siblingIndex: 26 })).to.equal('aa.')
+    expect(computeMarker({ depth: 7 }, { siblingIndex: 26 })).to.equal('(aa)')
+  })
+
   it('markerWidth includes export trailing space', () => {
     expect(markerWidth('I.')).to.equal(3)
     expect(markerWidth('XIV.')).to.equal(5)
@@ -71,6 +77,8 @@ describe('outlineUtils', () => {
     expect(indentForDepth(2, 4)).to.equal(6)
     expect(indentForDepth(3, 4)).to.equal(12)
 
+    expect(indentForDepth(2, 'tab')).to.equal(3)
+
     expect(indentForDepth(1, 'dfm')).to.equal(0)
     expect(indentForDepth(2, 'dfm')).to.equal(4)
     expect(indentForDepth(3, 'dfm')).to.equal(8)
@@ -80,15 +88,28 @@ describe('outlineUtils', () => {
     expect(indentForDepth(7, 'dfm')).to.equal(24)
   })
 
+  it('indentForDepth can use actual ancestor marker widths', () => {
+    expect(indentForDepth(2, 1, ['XIV.'])).to.equal(5)
+    expect(indentForDepth(3, 2, ['XIV.', 'J.'])).to.equal(10)
+    expect(indentForDepth(3, 'dfm', ['XIV.', 'J.'])).to.equal(9)
+  })
+
   it('depthFromIndent and markerMatchesDepth agree on depth or return null', () => {
     expect(markerMatchesDepth('I.', 1)).to.equal(true)
+    expect(markerMatchesDepth('I.', 2)).to.equal(true)
+    expect(markerMatchesDepth('AA.', 2)).to.equal(true)
     expect(markerMatchesDepth('A.', 2)).to.equal(true)
     expect(markerMatchesDepth('1.', 3)).to.equal(true)
+    expect(markerMatchesDepth('i.', 4)).to.equal(true)
+    expect(markerMatchesDepth('i.', 5)).to.equal(true)
+    expect(markerMatchesDepth('(aa)', 7)).to.equal(true)
     expect(markerMatchesDepth('1.', 1)).to.equal(false)
 
     expect(depthFromIndent(0, 'I.', 2)).to.equal(1)
+    expect(depthFromIndent(4, 'I.', 2)).to.equal(2)
     expect(depthFromIndent(4, 'A.', 2)).to.equal(2)
     expect(depthFromIndent(8, '1.', 2)).to.equal(3)
+    expect(depthFromIndent(5, 'J.', 1, ['XIV.'])).to.equal(2)
     expect(depthFromIndent(4, '1.', 2)).to.equal(null)
     expect(depthFromIndent(0, 'A.', 2)).to.equal(null)
   })
@@ -125,5 +146,12 @@ describe('createOutlineItem', () => {
     expect(item.children[0].type).to.equal('p')
     expect(item.parent).to.equal(null)
     expect(item.groupStart).to.equal(false)
+  })
+
+  it('rejects unsupported outline depths', () => {
+    const ctx = createMuyaContext()
+
+    expect(() => ctx.contentState.createOutlineItem(0)).to.throw(RangeError)
+    expect(() => ctx.contentState.createOutlineItem(8)).to.throw(RangeError)
   })
 })
