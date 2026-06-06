@@ -125,7 +125,7 @@ All seven decisions locked. See **Locked decisions** below.
 | Implementation issue 03 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/3 → `dfb87c6` |
 | Implementation issue 04 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/4 → `4f6ba1d` |
 | Implementation issue 05 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/5 → `d58eb26` |
-| Implementation issue 06 | 🔄 In progress |
+| Implementation issue 06 | 🔄 Branch `feat/issue-06-import-lexer` — pending PR |
 | Implementation (issue 07+) | ⏭️ **Next** |
 
 ---
