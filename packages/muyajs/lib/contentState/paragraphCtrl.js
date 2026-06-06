@@ -533,7 +533,12 @@ const paragraphCtrl = (ContentState) => {
         break
       }
       case 'blockquote': {
-        this.handleQuoteMenu(insertMode)
+        const outlineItem = this.getOutlineItemForBlock(block)
+        if (outlineItem) {
+          this.turnOutlineIntoBlockquote(outlineItem)
+        } else {
+          this.handleQuoteMenu(insertMode)
+        }
         break
       }
       case 'mathblock': {
@@ -566,6 +571,18 @@ const paragraphCtrl = (ContentState) => {
       case 'paragraph': {
         if (start.key !== end.key) {
           return
+        }
+
+        const outlineItem = this.getOutlineItemForBlock(block)
+        if (outlineItem && paraType === 'paragraph') {
+          this.exitOutlineToParagraph(outlineItem)
+          break
+        }
+
+        if (outlineItem && /\d/.test(paraType)) {
+          const headingLevel = Number(paraType.split(/\s/)[1])
+          this.turnOutlineIntoHeading(outlineItem, headingLevel)
+          break
         }
 
         const headingStyle = DEFAULT_TURNDOWN_CONFIG.headingStyle
@@ -640,6 +657,10 @@ const paragraphCtrl = (ContentState) => {
           end: { key, offset: endOffset },
           isEdit: true
         }
+        break
+      }
+      case 'outline-item': {
+        this.turnBlockIntoOutlineItem(block, insertMode)
         break
       }
       case 'hr': {
@@ -915,22 +936,39 @@ const paragraphCtrl = (ContentState) => {
   // Test whether the paragraph transformation is valid.
   ContentState.prototype.isAllowedTransformation = function(block, toType, isMultilineSelection) {
     const fromType = this.getTypeFromBlock(block)
+    const outlineInvolved =
+      fromType === 'outline-item' || toType === 'outline-item' || !!this.getOutlineItemForBlock(block)
+
     if (toType === 'front-matter') {
       // Front matter block is added at the beginning.
       return true
     } else if (!fromType) {
       return false
-    } else if (isMultilineSelection && /heading|table/.test(toType)) {
+    } else if (isMultilineSelection && (outlineInvolved || /heading|table/.test(toType))) {
       return false
     } else if (fromType === toType || toType === 'reset-to-paragraph') {
       // Convert back to paragraph.
       return true
+    } else if (
+      (fromType === 'outline-item' && /^(ul|ol)-/.test(toType)) ||
+      (/^(ul|ol)-/.test(fromType) && toType === 'outline-item')
+    ) {
+      return false
     }
 
     switch (fromType) {
+      case 'outline-item': {
+        if (/^(ul|ol)-/.test(toType)) {
+          return false
+        }
+        return /paragraph|heading|blockquote|pre|mathblock|html|flowchart|sequence|plantuml|mermaid|vega-lite|hr|table/.test(
+          toType
+        )
+      }
       case 'ul-bullet':
       case 'ul-task':
       case 'ol-order':
+        return toType !== 'outline-item'
       case 'blockquote':
       case 'paragraph': {
         // Only allow line and table with an empty paragraph.
@@ -945,7 +983,7 @@ const paragraphCtrl = (ContentState) => {
       case 'heading 4':
       case 'heading 5':
       case 'heading 6':
-        return /paragraph|heading/.test(toType)
+        return /paragraph|heading|outline-item/.test(toType)
       default:
         // Tables and all code blocks are not allowed.
         return false
@@ -1009,9 +1047,15 @@ const paragraphCtrl = (ContentState) => {
           }
         } else if (affiliation.length === 2 && affiliation[1].type === 'blockquote') {
           internalType = 'blockquote'
+        } else if (this.getOutlineItemForBlock(block)) {
+          internalType = 'outline-item'
         } else if (block.functionType === 'paragraphContent') {
           internalType = 'paragraph'
         }
+        break
+      }
+      case 'outline-item': {
+        internalType = 'outline-item'
         break
       }
       case 'div': {

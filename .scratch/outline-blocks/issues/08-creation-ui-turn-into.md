@@ -1,6 +1,6 @@
 # Creation UI, Turn Into matrix, and UI gating
 
-**Status:** ready-for-agent  
+**Status:** pr-open  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-4, US-8, US-9, US-10, US-11, US-22, US-44, US-45, US-46, US-47, US-55
 
@@ -33,11 +33,11 @@ User-facing creation paths: `@` quick-insert, Turn Into submenu, **New outline g
 
 ## Acceptance criteria
 
-- [ ] TDD slices pass for gating and Turn Into matrix
-- [ ] UI hidden when `outlineBlocksEnabled` false; existing items remain editable
-- [ ] First outline in fresh context is depth 1 Roman unless continuation applies
-- [ ] New documents remain plain paragraph (AR-11)
-- [ ] `pnpm run lint` and `pnpm run test` pass
+- [x] TDD slices pass for gating and Turn Into matrix
+- [x] UI hidden when `outlineBlocksEnabled` false; existing items remain editable
+- [x] First outline in fresh context is depth 1 Roman unless continuation applies
+- [x] New documents remain plain paragraph (AR-11)
+- [x] `pnpm run lint` and `pnpm run test` pass
 
 ## Blocked by
 

@@ -1,6 +1,6 @@
 # Markdown export and round-trip tests
 
-**Status:** pr-open  
+**Status:** merged — PR #7  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-38, US-39, US-40, US-42, US-43
 

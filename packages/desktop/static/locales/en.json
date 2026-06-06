@@ -1185,6 +1185,10 @@
       "title": "Quote Block",
       "subtitle": "> Quote content"
     },
+    "outlineItem": {
+      "title": "Outline Item",
+      "subtitle": "I. Top-level outline"
+    },
     "orderedList": {
       "title": "Ordered List",
       "subtitle": "1. List item"
@@ -1282,7 +1286,9 @@
     "heading4": "Heading 4",
     "heading5": "Heading 5",
     "heading6": "Heading 6",
-    "hr": "Horizontal Rule"
+    "hr": "Horizontal Rule",
+    "outlineItem": "Outline Item",
+    "newOutlineGroup": "New Outline Group"
   },
   "editor": {
     "words": {},

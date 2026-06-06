@@ -1,6 +1,7 @@
 import BaseFloat from '../baseFloat'
 import { patch, h } from '../../parser/render/snabbdom'
 import { createMenu, createGetSubMenu, createGetLabel } from './config'
+import { filterOutlineMenuEntries } from '../quickInsert/config'
 
 import './index.css'
 
@@ -36,13 +37,20 @@ class FrontMenu extends BaseFloat {
     // Create the menu and label functions
     this.menu = createMenu(this.t)
     this.getLabel = createGetLabel(this.t)
-    this.getSubMenu = createGetSubMenu(this.t)
+    this.refreshMenuHelpers()
     const frontMenuContainer = (this.frontMenuContainer = document.createElement('div'))
     Object.assign(this.container.parentNode.style, {
       overflow: 'visible'
     })
     this.container.appendChild(frontMenuContainer)
     this.listen()
+  }
+
+  refreshMenuHelpers() {
+    const outlineBlocksEnabled = !!this.muya.options.outlineBlocksEnabled
+    this.getLabel = createGetLabel(this.t)
+    this.getSubMenu = createGetSubMenu(this.t, outlineBlocksEnabled)
+    this.menu = filterOutlineMenuEntries(createMenu(this.t), outlineBlocksEnabled)
   }
 
   listen() {
@@ -119,52 +127,61 @@ class FrontMenu extends BaseFloat {
 
   render() {
     const { oldVnode, frontMenuContainer, outmostBlock, startBlock, endBlock } = this
-    const { type, functionType } = outmostBlock
-    const children = this.menu.map(({ icon, label, text, shortCut }) => {
-      const subMenu = this.getSubMenu(outmostBlock, startBlock, endBlock)
-      const iconWrapperSelector = 'div.icon-wrapper'
-      const iconWrapper = h(
-        iconWrapperSelector,
-        h(
-          'i.icon',
+    const { type, functionType, depth } = outmostBlock
+    this.refreshMenuHelpers()
+    const children = this.menu
+      .filter((menuItem) => {
+        if (menuItem.label !== 'new-outline-group') {
+          return true
+        }
+
+        return type === 'outline-item' && depth === 1
+      })
+      .map(({ icon, label, text, shortCut }) => {
+        const subMenu = this.getSubMenu(outmostBlock, startBlock, endBlock)
+        const iconWrapperSelector = 'div.icon-wrapper'
+        const iconWrapper = h(
+          iconWrapperSelector,
           h(
-            `i.icon-${label.replace(/\s/g, '-')}`,
-            {
-              style: {
-                background: `url(${icon}) no-repeat`,
-                'background-size': '100%'
-              }
-            },
-            ''
+            'i.icon',
+            h(
+              `i.icon-${label.replace(/\s/g, '-')}`,
+              {
+                style: {
+                  background: `url(${icon}) no-repeat`,
+                  'background-size': '100%'
+                }
+              },
+              ''
+            )
           )
         )
-      )
-      const textWrapper = h('span', text)
-      const shortCutWrapper = h('div.short-cut', [h('span', shortCut)])
-      let itemSelector = `li.item.${label}`
-      const itemChildren = [iconWrapper, textWrapper, shortCutWrapper]
-      if (label === 'turnInto' && subMenu.length !== 0) {
-        itemChildren.push(this.renderSubMenu(subMenu))
-      }
-      if (label === 'turnInto' && subMenu.length === 0) {
-        itemSelector += '.disabled'
-      }
+        const textWrapper = h('span', text)
+        const shortCutWrapper = h('div.short-cut', [h('span', shortCut)])
+        let itemSelector = `li.item.${label}`
+        const itemChildren = [iconWrapper, textWrapper, shortCutWrapper]
+        if (label === 'turnInto' && subMenu.length !== 0) {
+          itemChildren.push(this.renderSubMenu(subMenu))
+        }
+        if (label === 'turnInto' && subMenu.length === 0) {
+          itemSelector += '.disabled'
+        }
       // front matter can not be duplicated.
-      if (label === 'duplicate' && type === 'pre' && functionType === 'frontmatter') {
-        itemSelector += '.disabled'
-      }
-      return h(
-        itemSelector,
-        {
-          on: {
-            click: (event) => {
-              this.selectItem(event, { label })
+        if (label === 'duplicate' && type === 'pre' && functionType === 'frontmatter') {
+          itemSelector += '.disabled'
+        }
+        return h(
+          itemSelector,
+          {
+            on: {
+              click: (event) => {
+                this.selectItem(event, { label })
+              }
             }
-          }
-        },
-        itemChildren
-      )
-    })
+          },
+          itemChildren
+        )
+      })
 
     const vnode = h('ul', children)
 
@@ -197,6 +214,12 @@ class FrontMenu extends BaseFloat {
       }
       case 'new': {
         contentState.insertParagraph('after', '', true)
+        break
+      }
+      case 'new-outline-group': {
+        if (type === 'outline-item' && this.outmostBlock.depth === 1) {
+          contentState.restartOutlineGroup(this.outmostBlock)
+        }
         break
       }
       case 'turnInto':

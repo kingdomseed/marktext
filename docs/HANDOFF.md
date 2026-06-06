@@ -126,8 +126,9 @@ All seven decisions locked. See **Locked decisions** below.
 | Implementation issue 04 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/4 → `4f6ba1d` |
 | Implementation issue 05 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/5 → `d58eb26` |
 | Implementation issue 06 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/6 → `e7fadb8` |
-| Implementation issue 07 | 🔄 Branch `feat/issue-07-export-roundtrip` — pending PR |
-| Implementation (issue 08+) | ⏭️ **Next** |
+| Implementation issue 07 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/7 → `310d022` |
+| Implementation issue 08 | 🔄 Branch `feat/issue-08-ui-gating` — pending PR |
+| Implementation (issue 09+) | ⏭️ **Next** |
 
 ---
 
@@ -301,9 +302,9 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Next step
 
-**Issue 07** (AFK): Markdown export and round-trip tests — TDD-first per `.scratch/outline-blocks/issues/07-markdown-export-roundtrip.md`.
+**Issue 08** (AFK): Creation UI, Turn Into matrix, and UI gating — TDD-first per `.scratch/outline-blocks/issues/08-creation-ui-turn-into.md`.
 
-Issues 01–06 merged on `feat/outline-editing-setup` (`e7fadb8`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
+Issues 01–07 merged on `feat/outline-editing-setup` (`310d022`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
 
 ## Implementation order
 

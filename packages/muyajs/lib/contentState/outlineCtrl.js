@@ -554,6 +554,265 @@ const outlineCtrl = (ContentState) => {
    * @param {Object} [priorSibling] Adjacent sibling for merge actions.
    * @returns {Object|boolean} Render result, or false when no action matched.
    */
+  /**
+   * Find the nearest preceding outline item for Turn Into depth continuation.
+   *
+   * @param {Object} referenceBlock Block being converted or inserted near.
+   * @returns {Object|null} Nearest preceding outline item, if any.
+   */
+  ContentState.prototype.findNearestPrecedingOutlineItem = function(referenceBlock) {
+    const outmost = this.findOutMostBlock(referenceBlock)
+    const index = this.findIndex(this.blocks, outmost)
+    if (index < 0) {
+      return null
+    }
+
+    for (let i = index - 1; i >= 0; i--) {
+      if (this.blocks[i].type === 'outline-item') {
+        return this.blocks[i]
+      }
+    }
+
+    return null
+  }
+
+  /**
+   * Resolve Turn Into depth from nearest preceding outline item in the group.
+   *
+   * @param {Object} referenceBlock Block being converted.
+   * @returns {number} Outline depth from 1 to 7.
+   */
+  ContentState.prototype.getOutlineTurnIntoDepth = function(referenceBlock) {
+    const preceding = this.findNearestPrecedingOutlineItem(referenceBlock)
+    return preceding ? preceding.depth : 1
+  }
+
+  /**
+   * Mark an outline item as the root of a new logical group.
+   *
+   * @param {Object} item Outline item to restart.
+   * @param {number} [start=1] Restart marker index for depth-1 Roman marker.
+   * @returns {Object} Render result.
+   */
+  ContentState.prototype.restartOutlineGroup = function(item, start = 1) {
+    if (!item || item.type !== 'outline-item' || item.depth !== 1) {
+      return false
+    }
+
+    item.groupStart = true
+    item.start = start
+    return this.partialRender()
+  }
+
+  /**
+   * Extract editable text from a top-level block being turned into outline.
+   *
+   * @param {Object} block Top-level paragraph, heading, or blockquote block.
+   * @returns {string} Body text to preserve.
+   */
+  ContentState.prototype.getBlockBodyTextForOutline = function(block) {
+    if (!block) {
+      return ''
+    }
+
+    if (block.type === 'p') {
+      return block.children.map((child) => child.text).join('\n')
+    }
+
+    if (/^h[1-6]$/.test(block.type)) {
+      return block.children[0]?.text || ''
+    }
+
+    if (block.type === 'blockquote') {
+      return block.children
+        .filter((child) => child.type === 'p')
+        .map((child) => child.children.map((span) => span.text).join('\n'))
+        .join('\n')
+    }
+
+    return ''
+  }
+
+  /**
+   * Replace a top-level block with an outline item, preserving body text.
+   *
+   * @param {Object} block Top-level block to convert.
+   * @param {number} depth Target outline depth.
+   * @param {boolean} [insertMode=false] Insert after instead of replacing.
+   * @returns {Object|boolean} Render result, or false when conversion failed.
+   */
+  ContentState.prototype.replaceBlockWithOutlineItem = function(
+    block,
+    depth,
+    insertMode = false
+  ) {
+    const bodyText = this.getBlockBodyTextForOutline(block)
+    const item = this.createOutlineItem(depth)
+    item.children[0].children[0].text = bodyText
+
+    if (insertMode) {
+      this.insertAfter(item, block)
+    } else {
+      const index = this.findIndex(this.blocks, block)
+      if (index < 0) {
+        return false
+      }
+
+      item.preSibling = block.preSibling
+      item.nextSibling = block.nextSibling
+
+      const previous = block.preSibling ? this.getBlock(block.preSibling) : null
+      const next = block.nextSibling ? this.getBlock(block.nextSibling) : null
+
+      if (previous) {
+        previous.nextSibling = item.key
+      }
+
+      if (next) {
+        next.preSibling = item.key
+      }
+
+      this.blocks.splice(index, 1, item)
+    }
+
+    const key = item.children[0].children[0].key
+    const offset = bodyText.length
+    this.cursor = {
+      start: { key, offset },
+      end: { key, offset },
+      isEdit: true
+    }
+
+    return this.partialRender()
+  }
+
+  /**
+   * Convert a top-level block into an outline item using Turn Into rules.
+   *
+   * @param {Object} block Editable block at the cursor.
+   * @param {boolean} [insertMode=false] Insert after the source block.
+   * @returns {Object|boolean} Render result, or false when conversion failed.
+   */
+  ContentState.prototype.turnBlockIntoOutlineItem = function(block, insertMode = false) {
+    const outmost = this.findOutMostBlock(block)
+    if (!outmost || outmost.type === 'outline-item') {
+      return false
+    }
+
+    if (!/^(p|blockquote|h[1-6])$/.test(outmost.type)) {
+      return false
+    }
+
+    const depth = this.getOutlineTurnIntoDepth(block)
+    return this.replaceBlockWithOutlineItem(outmost, depth, insertMode)
+  }
+
+  /**
+   * Convert an outline item into a heading and promote nested descendants.
+   *
+   * @param {Object} item Outline item to convert.
+   * @param {number} level Heading level from 1 to 6.
+   * @returns {Object|boolean} Render result, or false when conversion failed.
+   */
+  ContentState.prototype.turnOutlineIntoHeading = function(item, level) {
+    if (!item || item.type !== 'outline-item' || level < 1 || level > 6) {
+      return false
+    }
+
+    const bodyText = this.getBlockBodyTextForOutline(item.children[0])
+    const heading = this.createBlock(`h${level}`, { headingStyle: 'atx' })
+    const content = this.createBlock('span', {
+      text: `${'#'.repeat(level)}${String.fromCharCode(160)}${bodyText}`,
+      functionType: 'atxLine'
+    })
+
+    this.appendChild(heading, content)
+    this.promoteOutlineDescendants(item)
+    this.transferOutlineGroupStart(item)
+
+    const index = this.findIndex(this.blocks, item)
+    if (index < 0) {
+      return false
+    }
+
+    heading.preSibling = item.preSibling
+    heading.nextSibling = item.nextSibling
+
+    const previous = item.preSibling ? this.getBlock(item.preSibling) : null
+    const next = item.nextSibling ? this.getBlock(item.nextSibling) : null
+
+    if (previous) {
+      previous.nextSibling = heading.key
+    }
+
+    if (next) {
+      next.preSibling = heading.key
+    }
+
+    this.blocks.splice(index, 1, heading)
+
+    const key = content.key
+    const offset = content.text.length
+    this.cursor = {
+      start: { key, offset },
+      end: { key, offset },
+      isEdit: true
+    }
+
+    return this.partialRender()
+  }
+
+  /**
+   * Convert an outline item into a blockquote and promote nested descendants.
+   *
+   * @param {Object} item Outline item to convert.
+   * @returns {Object|boolean} Render result, or false when conversion failed.
+   */
+  ContentState.prototype.turnOutlineIntoBlockquote = function(item) {
+    if (!item || item.type !== 'outline-item') {
+      return false
+    }
+
+    const bodyText = this.getBlockBodyTextForOutline(item.children[0])
+    const quoteBlock = this.createBlock('blockquote')
+    const paragraph = this.createBlockP(bodyText)
+
+    this.appendChild(quoteBlock, paragraph)
+    this.promoteOutlineDescendants(item)
+    this.transferOutlineGroupStart(item)
+
+    const index = this.findIndex(this.blocks, item)
+    if (index < 0) {
+      return false
+    }
+
+    quoteBlock.preSibling = item.preSibling
+    quoteBlock.nextSibling = item.nextSibling
+
+    const previous = item.preSibling ? this.getBlock(item.preSibling) : null
+    const next = item.nextSibling ? this.getBlock(item.nextSibling) : null
+
+    if (previous) {
+      previous.nextSibling = quoteBlock.key
+    }
+
+    if (next) {
+      next.preSibling = quoteBlock.key
+    }
+
+    this.blocks.splice(index, 1, quoteBlock)
+
+    const key = paragraph.children[0].key
+    const offset = bodyText.length
+    this.cursor = {
+      start: { key, offset },
+      end: { key, offset },
+      isEdit: true
+    }
+
+    return this.partialRender()
+  }
+
   ContentState.prototype.handleOutlineBackspace = function(outlineItem, info, priorSibling) {
     switch (info) {
       case 'DELETE':

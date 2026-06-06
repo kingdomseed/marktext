@@ -26,6 +26,28 @@ const COMMAND_KEY = isOsx ? '⌘' : 'Ctrl'
 const OPTION_KEY = isOsx ? '⌥' : 'Alt'
 const SHIFT_KEY = isOsx ? '⇧' : 'Shift'
 
+export const OUTLINE_MENU_LABELS = ['outline-item', 'new-outline-group']
+
+export const filterOutlineMenuEntries = (items, outlineBlocksEnabled) => {
+  if (outlineBlocksEnabled) {
+    return items
+  }
+
+  return items.filter((item) => !OUTLINE_MENU_LABELS.includes(item.label))
+}
+
+export const filterOutlineQuickInsertObj = (obj, outlineBlocksEnabled) => {
+  if (outlineBlocksEnabled) {
+    return obj
+  }
+
+  const result = {}
+  Object.keys(obj).forEach((key) => {
+    result[key] = filterOutlineMenuEntries(obj[key], outlineBlocksEnabled)
+  })
+  return result
+}
+
 // Command (or Cmd) ⌘
 // Shift ⇧
 // Option (or Alt) ⌥
@@ -127,6 +149,12 @@ export const createQuickInsertObj = (t) => {
       icon: quoteIcon
     }],
     [translate('quickInsert.listBlock')]: [{
+      title: translate('quickInsert.outlineItem.title'),
+      subTitle: translate('quickInsert.outlineItem.subtitle'),
+      label: 'outline-item',
+      shortCut: `${OPTION_KEY}+${SHIFT_KEY}+${COMMAND_KEY}+I`,
+      icon: orderListIcon
+    }, {
       title: translate('quickInsert.orderedList.title'),
       subTitle: translate('quickInsert.orderedList.subtitle'),
       label: 'ol-order',

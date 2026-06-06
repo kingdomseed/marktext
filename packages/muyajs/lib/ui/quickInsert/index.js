@@ -2,7 +2,7 @@ import { filter } from 'fuzzaldrin'
 import { patch, h } from '../../parser/render/snabbdom'
 import { deepCopy } from '../../utils'
 import BaseScrollFloat from '../baseScrollFloat'
-import { createQuickInsertObj } from './config'
+import { createQuickInsertObj, filterOutlineQuickInsertObj } from './config'
 import './index.css'
 
 class QuickInsert extends BaseScrollFloat {
@@ -126,7 +126,10 @@ class QuickInsert extends BaseScrollFloat {
   search(text) {
     const { contentState } = this.muya
     const canInserFrontMatter = contentState.canInserFrontMatter(this.block)
-    const obj = deepCopy(this.originalQuickInsertObj)
+    const obj = filterOutlineQuickInsertObj(
+      deepCopy(this.originalQuickInsertObj),
+      !!this.muya.options.outlineBlocksEnabled
+    )
     if (!canInserFrontMatter) {
       // Find the basic block group containing front-matter
       const basicBlockKey = Object.keys(obj).find((key) => {
