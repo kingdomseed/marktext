@@ -222,6 +222,112 @@ const outlineCtrl = (ContentState) => {
     return this.reparentingCascade(item, -1) ? this.partialRender() : false
   }
 
+  /**
+   * Find following outline descendants that currently belong under an item.
+   *
+   * Non-outline blocks are transparent for outline parentage, so this walks the
+   * logical group until the next outline item at this depth or higher.
+   *
+   * @param {Object} item Outline item whose descendants should be collected.
+   * @returns {Object[]} Following descendant outline items.
+   */
+  ContentState.prototype.getFollowingOutlineDescendants = function(item) {
+    const group = this.getOutlineGroupForItem(item)
+    const itemIndex = this.findIndex(this.blocks, item)
+    if (!group || itemIndex < 0) {
+      return []
+    }
+
+    const descendants = []
+    for (let i = itemIndex + 1; i < this.blocks.length; i++) {
+      const block = this.blocks[i]
+      if (block.type !== 'outline-item') {
+        continue
+      }
+
+      if (!group.includes(block) || block.depth <= item.depth) {
+        break
+      }
+
+      descendants.push(block)
+    }
+
+    return descendants
+  }
+
+  /**
+   * Find the next outline item in the same logical group.
+   *
+   * @param {Object} item Outline item to search after.
+   * @returns {Object|null} Next outline item in the same group.
+   */
+  ContentState.prototype.getNextOutlineItemInGroup = function(item) {
+    const group = this.getOutlineGroupForItem(item)
+    const itemIndex = this.findIndex(this.blocks, item)
+    if (!group || itemIndex < 0) {
+      return null
+    }
+
+    for (let i = itemIndex + 1; i < this.blocks.length; i++) {
+      const block = this.blocks[i]
+      if (block.type !== 'outline-item') {
+        continue
+      }
+
+      return group.includes(block) ? block : null
+    }
+
+    return null
+  }
+
+  /**
+   * Preserve an explicit group boundary when removing its current root item.
+   *
+   * @param {Object} item Outline item that may own the group-start marker.
+   */
+  ContentState.prototype.transferOutlineGroupStart = function(item) {
+    if (!item.groupStart) {
+      return
+    }
+
+    const nextItem = this.getNextOutlineItemInGroup(item)
+    if (!nextItem) {
+      return
+    }
+
+    nextItem.groupStart = true
+    nextItem.start = item.start
+  }
+
+  /**
+   * Promote nested outline items after their owning wrapper is removed.
+   *
+   * @param {Object} item Outline item being removed or converted.
+   */
+  ContentState.prototype.promoteOutlineDescendants = function(item) {
+    const descendants = this.getFollowingOutlineDescendants(item)
+    descendants.forEach((descendant) => {
+      descendant.depth -= 1
+    })
+  }
+
+  /**
+   * Resolve where a new same-depth sibling should be inserted.
+   *
+   * @param {Object} item Outline item that receives a new sibling.
+   * @returns {Object} Last existing descendant, or the item itself.
+   */
+  ContentState.prototype.getOutlineSiblingInsertionReference = function(item) {
+    const descendants = this.getFollowingOutlineDescendants(item)
+    return descendants[descendants.length - 1] || item
+  }
+
+  /**
+   * Check whether an outline item's editable body is empty.
+   *
+   * @param {Object} item Outline item to inspect.
+   * @returns {boolean} True when the body has no text.
+   */
   ContentState.prototype.isOutlineBodyEmpty = function(item) {
     const paragraph = item.children[0]
     if (!paragraph || paragraph.type !== 'p') {
@@ -231,6 +337,12 @@ const outlineCtrl = (ContentState) => {
     return paragraph.children.every((child) => !child.text)
   }
 
+  /**
+   * Find an immediately adjacent prior same-depth outline sibling.
+   *
+   * @param {Object} item Outline item to inspect.
+   * @returns {Object|null} Adjacent prior sibling, if one exists.
+   */
   ContentState.prototype.getAdjacentPriorOutlineSibling = function(item) {
     const index = this.findIndex(this.blocks, item)
     if (index <= 0) {
@@ -248,9 +360,16 @@ const outlineCtrl = (ContentState) => {
     return parent === previousParent ? previous : null
   }
 
+  /**
+   * Insert a same-depth sibling without stealing existing descendants.
+   *
+   * @param {Object} item Outline item receiving a new sibling.
+   * @returns {Object} Render result.
+   */
   ContentState.prototype.insertOutlineSibling = function(item) {
     const newItem = this.createOutlineItem(item.depth)
-    this.insertAfter(newItem, item)
+    const reference = this.getOutlineSiblingInsertionReference(item)
+    this.insertAfter(newItem, reference)
     const key = newItem.children[0].children[0].key
 
     this.cursor = {
@@ -262,6 +381,12 @@ const outlineCtrl = (ContentState) => {
     return this.partialRender()
   }
 
+  /**
+   * Convert an outline item into a plain paragraph and promote descendants.
+   *
+   * @param {Object} item Outline item to convert.
+   * @returns {Object} Render result.
+   */
   ContentState.prototype.exitOutlineToParagraph = function(item) {
     const index = this.findIndex(this.blocks, item)
     const bodyText = item.children[0].children.map((child) => child.text).join('\n')
@@ -280,6 +405,8 @@ const outlineCtrl = (ContentState) => {
       next.preSibling = newBlock.key
     }
 
+    this.promoteOutlineDescendants(item)
+    this.transferOutlineGroupStart(item)
     this.blocks.splice(index, 1, newBlock)
 
     const key = newBlock.children[0].key
@@ -292,6 +419,13 @@ const outlineCtrl = (ContentState) => {
     return this.partialRender()
   }
 
+  /**
+   * Merge an outline item body into its adjacent prior sibling.
+   *
+   * @param {Object} item Outline item being merged.
+   * @param {Object} priorSibling Adjacent same-depth outline sibling.
+   * @returns {Object} Render result.
+   */
   ContentState.prototype.mergeOutlineSiblings = function(item, priorSibling) {
     const priorParagraph = priorSibling.children[0]
     const itemParagraph = item.children[0]
@@ -311,6 +445,12 @@ const outlineCtrl = (ContentState) => {
     return this.partialRender()
   }
 
+  /**
+   * Delete an outline item and promote any nested descendants.
+   *
+   * @param {Object} item Outline item to delete.
+   * @returns {Object} Render result.
+   */
   ContentState.prototype.deleteOutlineItem = function(item) {
     const index = this.findIndex(this.blocks, item)
     let key
@@ -330,6 +470,8 @@ const outlineCtrl = (ContentState) => {
       }
     }
 
+    this.promoteOutlineDescendants(item)
+    this.transferOutlineGroupStart(item)
     this.removeBlock(item)
 
     if (key) {
@@ -343,6 +485,14 @@ const outlineCtrl = (ContentState) => {
     return this.partialRender()
   }
 
+  /**
+   * Handle Enter inside an outline item body.
+   *
+   * @param {Object} outlineItem Outline item at the cursor.
+   * @param {Object} bodyBlock Paragraph body block.
+   * @param {Object} start Cursor start position.
+   * @returns {Object|boolean} Render result, or false when no change happened.
+   */
   ContentState.prototype.enterInOutlineItem = function(outlineItem, bodyBlock, start) {
     const activeLine = this.getBlock(start.key)
     const text = activeLine.text
@@ -362,7 +512,8 @@ const outlineCtrl = (ContentState) => {
       const newItem = this.createOutlineItem(outlineItem.depth)
       newItem.children = [newBodyBlock]
       newBodyBlock.parent = newItem.key
-      this.insertAfter(newItem, outlineItem)
+      const reference = this.getOutlineSiblingInsertionReference(outlineItem)
+      this.insertAfter(newItem, reference)
 
       const key = newBodyBlock.children[0].key
       this.cursor = {
@@ -395,6 +546,14 @@ const outlineCtrl = (ContentState) => {
     return this.insertOutlineSibling(outlineItem)
   }
 
+  /**
+   * Dispatch an outline-specific Backspace action.
+   *
+   * @param {Object} outlineItem Outline item at the cursor.
+   * @param {string} info Backspace action kind.
+   * @param {Object} [priorSibling] Adjacent sibling for merge actions.
+   * @returns {Object|boolean} Render result, or false when no action matched.
+   */
   ContentState.prototype.handleOutlineBackspace = function(outlineItem, info, priorSibling) {
     switch (info) {
       case 'DELETE':

@@ -81,6 +81,26 @@ describe('outline Enter / Backspace / Shift+Enter', () => {
     expect(outlines[1].children[0].children[0].text).to.equal('')
   })
 
+  it('Enter after a parent inserts the sibling after existing descendants', () => {
+    const contentState = createContentState((cs) => {
+      const parent = cs.createOutlineItem(1)
+      const child = cs.createOutlineItem(2)
+      parent.children[0].children[0].text = 'Parent'
+      child.children[0].children[0].text = 'Child'
+      setRootBlocks(cs, [parent, child])
+      focusOutlineBody(cs, parent, 6)
+      cs.enterInOutlineItem(parent, parent.children[0], cs.cursor.start)
+    })
+
+    const outlines = contentState.getBlocks().filter((block) => block.type === 'outline-item')
+
+    expect(outlines).to.have.length(3)
+    expect(outlineDepths(contentState)).to.deep.equal([1, 2, 1])
+    expect(outlineMarkers(contentState)).to.deep.equal(['I.', 'A.', 'II.'])
+    expect(contentState.findImplicitParent(outlines[1])?.key).to.equal(outlines[0].key)
+    expect(outlines[2].children[0].children[0].text).to.equal('')
+  })
+
   it('Enter on empty body at depth 1 becomes a plain paragraph', () => {
     const contentState = createContentState((cs) => {
       const item = cs.createOutlineItem(1)
@@ -174,6 +194,27 @@ describe('outline Enter / Backspace / Shift+Enter', () => {
     expect(contentState.getBlocks()[0].children[0].text).to.equal('Solo')
   })
 
+  it('exiting a parent to paragraph promotes existing descendants', () => {
+    const contentState = createContentState((cs) => {
+      const parent = cs.createOutlineItem(1)
+      const child = cs.createOutlineItem(2)
+      parent.children[0].children[0].text = 'Parent'
+      child.children[0].children[0].text = 'Child'
+      setRootBlocks(cs, [parent, child])
+      focusOutlineBody(cs, parent)
+      cs.handleOutlineBackspace(parent, 'EXIT')
+    })
+
+    const blocks = contentState.getBlocks()
+
+    expect(blocks).to.have.length(2)
+    expect(blocks[0].type).to.equal('p')
+    expect(blocks[0].children[0].text).to.equal('Parent')
+    expect(outlineDepths(contentState)).to.deep.equal([1])
+    expect(outlineMarkers(contentState)).to.deep.equal(['I.'])
+    expect(contentState.findImplicitParent(blocks[1])).to.equal(null)
+  })
+
   it('Backspace on an empty item deletes it and renumbers siblings', () => {
     const contentState = createContentState((cs) => {
       const first = cs.createOutlineItem(1)
@@ -186,6 +227,43 @@ describe('outline Enter / Backspace / Shift+Enter', () => {
 
     expect(outlineDepths(contentState)).to.deep.equal([1, 1])
     expect(outlineMarkers(contentState)).to.deep.equal(['I.', 'II.'])
+  })
+
+  it('Backspace on an empty parent deletes it and promotes descendants', () => {
+    const contentState = createContentState((cs) => {
+      const parent = cs.createOutlineItem(1)
+      const child = cs.createOutlineItem(2)
+      child.children[0].children[0].text = 'Child'
+      setRootBlocks(cs, [parent, child])
+      focusOutlineBody(cs, parent)
+      cs.handleOutlineBackspace(parent, 'DELETE')
+    })
+
+    const outlines = contentState.getBlocks().filter((block) => block.type === 'outline-item')
+
+    expect(outlines).to.have.length(1)
+    expect(outlineDepths(contentState)).to.deep.equal([1])
+    expect(outlineMarkers(contentState)).to.deep.equal(['I.'])
+    expect(outlines[0].children[0].children[0].text).to.equal('Child')
+    expect(contentState.findImplicitParent(outlines[0])).to.equal(null)
+  })
+
+  it('deleting a group-start parent transfers the restart to the promoted child', () => {
+    const contentState = createContentState((cs) => {
+      const previous = cs.createOutlineItem(1)
+      const parent = cs.createOutlineItem(1, { groupStart: true, start: 11 })
+      const child = cs.createOutlineItem(2)
+      setRootBlocks(cs, [previous, parent, child])
+      focusOutlineBody(cs, parent)
+      cs.handleOutlineBackspace(parent, 'DELETE')
+    })
+
+    const outlines = contentState.getBlocks().filter((block) => block.type === 'outline-item')
+
+    expect(outlineDepths(contentState)).to.deep.equal([1, 1])
+    expect(outlineMarkers(contentState)).to.deep.equal(['I.', 'XI.'])
+    expect(outlines[1].groupStart).to.equal(true)
+    expect(outlines[1].start).to.equal(11)
   })
 
   it('Backspace does not merge across an intervening paragraph', () => {
@@ -223,5 +301,27 @@ describe('outline Enter / Backspace / Shift+Enter', () => {
     expect(outlineDepths(contentState)).to.deep.equal([2, 2])
     expect(outlines[0].children[0].children[0].text).to.equal('Alpha')
     expect(outlines[1].children[0].children[0].text).to.equal('Beta')
+  })
+
+  it('Enter mid-body preserves existing descendants under the original item', () => {
+    const contentState = createContentState((cs) => {
+      const parent = cs.createOutlineItem(1)
+      const child = cs.createOutlineItem(2)
+      parent.children[0].children[0].text = 'AlphaBeta'
+      child.children[0].children[0].text = 'Child'
+      setRootBlocks(cs, [parent, child])
+      focusOutlineBody(cs, parent, 5)
+      cs.enterInOutlineItem(parent, parent.children[0], cs.cursor.start)
+    })
+
+    const outlines = contentState.getBlocks().filter((block) => block.type === 'outline-item')
+
+    expect(outlines).to.have.length(3)
+    expect(outlineDepths(contentState)).to.deep.equal([1, 2, 1])
+    expect(outlineMarkers(contentState)).to.deep.equal(['I.', 'A.', 'II.'])
+    expect(outlines[0].children[0].children[0].text).to.equal('Alpha')
+    expect(outlines[1].children[0].children[0].text).to.equal('Child')
+    expect(outlines[2].children[0].children[0].text).to.equal('Beta')
+    expect(contentState.findImplicitParent(outlines[1])?.key).to.equal(outlines[0].key)
   })
 })
