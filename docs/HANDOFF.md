@@ -102,8 +102,7 @@ All seven decisions locked. See **Locked decisions** below.
 ### Not done yet
 
 - Dev smoke test (`pnpm install && pnpm dev`).
-- Merge fork PR #1 for issue 01, then continue with issue 02.
-- Implementation per issues 02–10.
+- Implementation per issues 02–10 (issue 02 in progress).
 
 ---
 
@@ -120,9 +119,10 @@ All seven decisions locked. See **Locked decisions** below.
 | **`to-issues`** | ✅ 11 issues in `.scratch/outline-blocks/issues/` |
 | Issue adversarial review | ✅ `issues/REVIEW.md` — findings applied |
 | Upstream suggestion (issue 00) | ✅ Filed: https://github.com/marktext/marktext/issues/4379 |
-| Implementation issue 01 | ✅ PR #1 open: https://github.com/kingdomseed/marktext/pull/1 |
+| Implementation issue 01 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/1 → `6e9b137` |
 | Dev smoke test | ❌ Not run |
-| Implementation (issue 02+) | ⏭️ **Next** |
+| Implementation issue 02 | ✅ Branch `feat/issue-02-outline-utils-block-model` — pending PR |
+| Implementation (issue 03+) | ⏭️ **Next** |
 
 ---
 
@@ -296,8 +296,9 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Next step
 
-**Issue 00** (HITL): file upstream suggestion on `marktext/marktext`.  
-**Issue 01** (AFK): `outlineBlocksEnabled` preference + engine wire — TDD-first per `.scratch/outline-blocks/issues/01-outline-preference-engine-wire.md`.
+**Issue 02** (AFK): outline utilities + `outline-item` block scaffolding — TDD-first per `.scratch/outline-blocks/issues/02-outline-utils-block-model.md`.
+
+Issue 01 merged (`6e9b137` on `feat/outline-editing-setup`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
 
 ## Implementation order
 

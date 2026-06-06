@@ -34,6 +34,7 @@ import imageCtrl from './imageCtrl'
 import linkCtrl from './linkCtrl'
 import dragDropCtrl from './dragDropCtrl'
 import footnoteCtrl from './footnoteCtrl'
+import outlineCtrl from './outlineCtrl'
 import importMarkdown from '../utils/importMarkdown'
 import Cursor from '../selection/cursor'
 import escapeCharactersMap, { escapeCharacters } from '../parser/escapeCharacter'
@@ -66,6 +67,7 @@ const prototypes = [
   linkCtrl,
   dragDropCtrl,
   footnoteCtrl,
+  outlineCtrl,
   importMarkdown
 ]
 
@@ -350,6 +352,17 @@ class ContentState {
     const contentBlock = this.createBlock('span', { text })
     this.appendChild(pBlock, contentBlock)
     return pBlock
+  }
+
+  createOutlineItem(depth = 1, options = {}) {
+    const item = this.createBlock('outline-item', {
+      depth,
+      groupStart: options.groupStart || false,
+      start: options.start
+    })
+    const p = this.createBlockP()
+    this.appendChild(item, p)
+    return item
   }
 
   isCollapse(cursor = this.cursor) {

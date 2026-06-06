@@ -273,6 +273,7 @@ export const CLASS_OR_ID = Object.freeze(
     'AG_NOTEXT_LINK',
     'AG_ORDER_LIST',
     'AG_ORDER_LIST_ITEM',
+    'AG_OUTLINE_ITEM',
     'AG_OUTPUT_REMOVE',
     'AG_PARAGRAPH',
     'AG_RAW_HTML',

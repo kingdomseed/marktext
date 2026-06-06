@@ -1,6 +1,6 @@
 # Outline preference and engine option wire
 
-**Status:** implemented — PR #1 open  
+**Status:** merged — PR #1
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-1, US-2, US-3, US-4 (UI gating deferred to issue 08), US-5, US-6 (silent by design), US-7
 
@@ -49,5 +49,5 @@ None — can start immediately
 |-------|-------|
 | Fork PR | https://github.com/kingdomseed/marktext/pull/1 |
 | Branch | `feat/issue-01-outline-preference` |
-| Commit | `d94e543e38e7fcc94a4cd4a727c8a503734c3bb2` |
+| Commit | `6e9b137` (merged into `feat/outline-editing-setup`) |
 | Verification | `pnpm -C packages/desktop exec vitest run test/unit/specs/outline-preference.spec.ts`; `pnpm run lint` |

@@ -1,6 +1,6 @@
 # Outline utilities and block model scaffolding
 
-**Status:** ready-for-agent  
+**Status:** implemented â€” pending PR
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-17, US-18
 
@@ -28,12 +28,12 @@ Flat model: outline items at document root; body in child paragraph; `depth` 1â€
 
 ## Acceptance criteria
 
-- [ ] All TDD slices pass (`packages/desktop/test/unit/specs/outline-utils.spec.ts` or equivalent)
-- [ ] `outlineUtils` exports `markerWidth`, `computeMarker`, `indentForDepth`, `depthFromIndent`, `markerMatchesDepth`, `walkOutlineGroups`
-- [ ] `createOutlineItem()` on `ContentState` (`index.js`), not `outlineCtrl.js`
-- [ ] `outlineCtrl.js` registered (stub OK)
-- [ ] `AG_OUTLINE_ITEM` in `CLASS_OR_ID` (`config/index.js`)
-- [ ] `pnpm run lint` and `pnpm run test` pass
+- [x] All TDD slices pass (`packages/desktop/test/unit/specs/outline-utils.spec.ts` or equivalent)
+- [x] `outlineUtils` exports `markerWidth`, `computeMarker`, `indentForDepth`, `depthFromIndent`, `markerMatchesDepth`, `walkOutlineGroups`
+- [x] `createOutlineItem()` on `ContentState` (`index.js`), not `outlineCtrl.js`
+- [x] `outlineCtrl.js` registered (stub OK)
+- [x] `AG_OUTLINE_ITEM` in `CLASS_OR_ID` (`config/index.js`)
+- [x] `pnpm run lint` and `pnpm run test` pass
 
 ## Blocked by
 
