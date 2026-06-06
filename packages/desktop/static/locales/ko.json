@@ -1180,6 +1180,10 @@
       "title": "인용 블록",
       "subtitle": "> 인용 내용"
     },
+    "outlineItem": {
+      "title": "개요 항목",
+      "subtitle": "I. 최상위 개요"
+    },
     "orderedList": {
       "title": "순서 목록",
       "subtitle": "1. 목록 항목"
@@ -1277,7 +1281,9 @@
     "heading4": "제목 4",
     "heading5": "제목 5",
     "heading6": "제목 6",
-    "hr": "수평선"
+    "hr": "수평선",
+    "outlineItem": "개요 항목",
+    "newOutlineGroup": "새 개요 그룹"
   },
   "editor": {
     "image": {

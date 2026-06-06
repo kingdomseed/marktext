@@ -75,4 +75,22 @@ describe('outline preference', () => {
       expect(searchItems.outlineBlocksEnabled, file).to.not.equal('')
     })
   })
+
+  it('all source locale files define outline creation UI keys', () => {
+    const localeFiles = readdirSync(localesPath)
+      .filter(file => file.endsWith('.json') && !file.endsWith('.min.json'))
+
+    localeFiles.forEach(file => {
+      const locale = JSON.parse(readFileSync(resolve(localesPath, file), 'utf-8'))
+
+      expect(locale.quickInsert.outlineItem.title, file).to.be.a('string')
+      expect(locale.quickInsert.outlineItem.title, file).to.not.equal('')
+      expect(locale.quickInsert.outlineItem.subtitle, file).to.be.a('string')
+      expect(locale.quickInsert.outlineItem.subtitle, file).to.not.equal('')
+      expect(locale.frontMenu.outlineItem, file).to.be.a('string')
+      expect(locale.frontMenu.outlineItem, file).to.not.equal('')
+      expect(locale.frontMenu.newOutlineGroup, file).to.be.a('string')
+      expect(locale.frontMenu.newOutlineGroup, file).to.not.equal('')
+    })
+  })
 })

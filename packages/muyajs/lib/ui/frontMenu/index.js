@@ -34,9 +34,6 @@ class FrontMenu extends BaseFloat {
     this.reference = null
     // Get the translation function
     this.t = opts.t || muya.options.t || ((key) => key)
-    // Create the menu and label functions
-    this.menu = createMenu(this.t)
-    this.getLabel = createGetLabel(this.t)
     this.refreshMenuHelpers()
     const frontMenuContainer = (this.frontMenuContainer = document.createElement('div'))
     Object.assign(this.container.parentNode.style, {
@@ -129,6 +126,7 @@ class FrontMenu extends BaseFloat {
     const { oldVnode, frontMenuContainer, outmostBlock, startBlock, endBlock } = this
     const { type, functionType, depth } = outmostBlock
     this.refreshMenuHelpers()
+    const subMenu = this.getSubMenu(outmostBlock, startBlock, endBlock)
     const children = this.menu
       .filter((menuItem) => {
         if (menuItem.label !== 'new-outline-group') {
@@ -138,7 +136,6 @@ class FrontMenu extends BaseFloat {
         return type === 'outline-item' && depth === 1
       })
       .map(({ icon, label, text, shortCut }) => {
-        const subMenu = this.getSubMenu(outmostBlock, startBlock, endBlock)
         const iconWrapperSelector = 'div.icon-wrapper'
         const iconWrapper = h(
           iconWrapperSelector,
@@ -166,7 +163,7 @@ class FrontMenu extends BaseFloat {
         if (label === 'turnInto' && subMenu.length === 0) {
           itemSelector += '.disabled'
         }
-      // front matter can not be duplicated.
+        // front matter can not be duplicated.
         if (label === 'duplicate' && type === 'pre' && functionType === 'frontmatter') {
           itemSelector += '.disabled'
         }

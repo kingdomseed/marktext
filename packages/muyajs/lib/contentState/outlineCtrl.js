@@ -3,6 +3,11 @@ import {
   walkOutlineGroups
 } from '../utils/outlineUtils'
 
+const stripHeadingMarker = (text) => {
+  const match = /(^ {0,3}#*[ \u00A0]*)([\s\S]*)/.exec(text)
+  return match ? match[2] : text
+}
+
 const outlineCtrl = (ContentState) => {
   /**
    * Find the logical outline group that owns an outline item.
@@ -620,7 +625,7 @@ const outlineCtrl = (ContentState) => {
     }
 
     if (/^h[1-6]$/.test(block.type)) {
-      return block.children[0]?.text || ''
+      return stripHeadingMarker(block.children[0]?.text || '')
     }
 
     if (block.type === 'blockquote') {

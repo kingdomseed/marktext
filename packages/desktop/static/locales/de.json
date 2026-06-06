@@ -1178,6 +1178,10 @@
       "title": "Zitat-Block",
       "subtitle": "> Zitatinhalt"
     },
+    "outlineItem": {
+      "title": "Gliederungspunkt",
+      "subtitle": "I. Oberster Gliederungspunkt"
+    },
     "orderedList": {
       "title": "Nummerierte Liste",
       "subtitle": "1. Listenelement"
@@ -1275,7 +1279,9 @@
     "heading4": "Überschrift 4",
     "heading5": "Überschrift 5",
     "heading6": "Überschrift 6",
-    "hr": "Horizontale Linie"
+    "hr": "Horizontale Linie",
+    "outlineItem": "Gliederungspunkt",
+    "newOutlineGroup": "Neue Gliederungsgruppe"
   },
   "editor": {
     "image": {

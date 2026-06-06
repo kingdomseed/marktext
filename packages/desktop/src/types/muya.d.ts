@@ -136,6 +136,19 @@ declare module 'muya/lib/ui/quickInsert' {
   const x: any
   export default x
 }
+declare module 'muya/lib/ui/quickInsert/config' {
+  export const OUTLINE_MENU_LABELS: any
+  export const filterOutlineMenuEntries: any
+  export const filterOutlineQuickInsertObj: any
+  export const createQuickInsertObj: any
+}
+declare module 'muya/lib/ui/frontMenu/config' {
+  export const createMenu: any
+  export const createGetSubMenu: any
+  export const createGetLabel: any
+  export const getLabel: any
+  export const getSubMenu: any
+}
 declare module 'muya/lib/ui/codePicker' {
   const x: any
   export default x

@@ -1180,6 +1180,10 @@
       "title": "引用ブロック",
       "subtitle": "> 引用内容"
     },
+    "outlineItem": {
+      "title": "アウトライン項目",
+      "subtitle": "I. 最上位のアウトライン"
+    },
     "orderedList": {
       "title": "番号付きリスト",
       "subtitle": "1. リスト項目"
@@ -1277,7 +1281,9 @@
     "heading4": "見出し4",
     "heading5": "見出し5",
     "heading6": "見出し6",
-    "hr": "水平線"
+    "hr": "水平線",
+    "outlineItem": "アウトライン項目",
+    "newOutlineGroup": "新しいアウトライングループ"
   },
   "editor": {
     "image": {

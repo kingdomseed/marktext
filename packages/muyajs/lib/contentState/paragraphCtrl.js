@@ -958,9 +958,6 @@ const paragraphCtrl = (ContentState) => {
 
     switch (fromType) {
       case 'outline-item': {
-        if (/^(ul|ol)-/.test(toType)) {
-          return false
-        }
         return /paragraph|heading|blockquote|pre|mathblock|html|flowchart|sequence|plantuml|mermaid|vega-lite|hr|table/.test(
           toType
         )
@@ -968,7 +965,6 @@ const paragraphCtrl = (ContentState) => {
       case 'ul-bullet':
       case 'ul-task':
       case 'ol-order':
-        return toType !== 'outline-item'
       case 'blockquote':
       case 'paragraph': {
         // Only allow line and table with an empty paragraph.

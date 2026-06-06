@@ -1176,6 +1176,10 @@
       "title": "引用區塊",
       "subtitle": "> 引用內容"
     },
+    "outlineItem": {
+      "title": "大綱項目",
+      "subtitle": "I. 頂層大綱"
+    },
     "orderedList": {
       "title": "有序清單",
       "subtitle": "1. 列表項"
@@ -1285,7 +1289,9 @@
     "heading4": "標題 4",
     "heading5": "標題 5",
     "heading6": "標題 6",
-    "hr": "水平線"
+    "hr": "水平線",
+    "outlineItem": "大綱項目",
+    "newOutlineGroup": "新增大綱群組"
   },
   "editor": {
     "image": {

@@ -1174,6 +1174,10 @@
       "title": "Bloque de Cita",
       "subtitle": "> Contenido de cita"
     },
+    "outlineItem": {
+      "title": "Elemento de esquema",
+      "subtitle": "I. Esquema de nivel superior"
+    },
     "orderedList": {
       "title": "Lista Ordenada",
       "subtitle": "1. Elemento de lista"
@@ -1275,7 +1279,9 @@
     "heading4": "Encabezado 4",
     "heading5": "Encabezado 5",
     "heading6": "Encabezado 6",
-    "hr": "Línea horizontal"
+    "hr": "Línea horizontal",
+    "outlineItem": "Elemento de esquema",
+    "newOutlineGroup": "Nuevo grupo de esquema"
   },
   "editor": {
     "image": {

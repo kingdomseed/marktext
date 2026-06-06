@@ -1180,6 +1180,10 @@
       "title": "Bloco de Citação",
       "subtitle": "> Conteúdo da citação"
     },
+    "outlineItem": {
+      "title": "Item de estrutura de tópicos",
+      "subtitle": "I. Tópico de nível superior"
+    },
     "orderedList": {
       "title": "Lista Ordenada",
       "subtitle": "1. Item da lista"
@@ -1277,7 +1281,9 @@
     "heading4": "Cabeçalho 4",
     "heading5": "Cabeçalho 5",
     "heading6": "Cabeçalho 6",
-    "hr": "Linha horizontal"
+    "hr": "Linha horizontal",
+    "outlineItem": "Item de estrutura de tópicos",
+    "newOutlineGroup": "Novo grupo de tópicos"
   },
   "editor": {
     "image": {

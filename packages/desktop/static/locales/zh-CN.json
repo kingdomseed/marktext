@@ -1187,6 +1187,10 @@
       "title": "引用块",
       "subtitle": "> 引用内容"
     },
+    "outlineItem": {
+      "title": "大纲项",
+      "subtitle": "I. 顶层大纲"
+    },
     "orderedList": {
       "title": "有序列表",
       "subtitle": "1. 列表项"
@@ -1284,7 +1288,9 @@
     "heading4": "四级标题",
     "heading5": "五级标题",
     "heading6": "六级标题",
-    "hr": "分隔线"
+    "hr": "分隔线",
+    "outlineItem": "大纲项",
+    "newOutlineGroup": "新建大纲组"
   },
   "editor": {
     "image": {

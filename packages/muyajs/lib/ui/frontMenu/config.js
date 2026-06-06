@@ -15,6 +15,33 @@ const createWholeSubMenu = (t) => {
 }
 
 const COMMAND_KEY = isOsx ? '⌘' : '⌃'
+const PARAGRAPH_BLOCKED_LABELS = new Set(['front-matter', 'hr', 'table'])
+const MULTILINE_PARAGRAPH_BLOCKED_LABELS = new Set([
+  ...PARAGRAPH_BLOCKED_LABELS,
+  'heading 1',
+  'heading 2',
+  'heading 3',
+  'heading 4',
+  'heading 5',
+  'heading 6'
+])
+const HEADING_LABELS = new Set([
+  'paragraph',
+  'heading 1',
+  'heading 2',
+  'heading 3',
+  'heading 4',
+  'heading 5',
+  'heading 6',
+  'outline-item'
+])
+const LIST_LABELS = new Set(['ul-bullet', 'ul-task', 'ol-order'])
+const OUTLINE_COMPATIBLE_BLOCKED_LABELS = new Set([
+  'front-matter',
+  'hr',
+  'table',
+  ...LIST_LABELS
+])
 
 // Function to create the menu, accepting a translation function as a parameter
 export const createMenu = (t) => {
@@ -154,12 +181,12 @@ export const createGetSubMenu = (t, outlineBlocksEnabled = true) => {
     switch (type) {
       case 'p': {
         return wholeSubMenu.filter((menuItem) => {
-          const REG_EXP =
+          const blockedLabels =
             startBlock.key === endBlock.key
-              ? /front-matter|hr|table/
-              : /front-matter|hr|table|heading/
+              ? PARAGRAPH_BLOCKED_LABELS
+              : MULTILINE_PARAGRAPH_BLOCKED_LABELS
 
-          return !REG_EXP.test(menuItem.label)
+          return !blockedLabels.has(menuItem.label)
         })
       }
       case 'h1':
@@ -169,23 +196,23 @@ export const createGetSubMenu = (t, outlineBlocksEnabled = true) => {
       case 'h5':
       case 'h6': {
         return wholeSubMenu.filter((menuItem) => {
-          return /heading|paragraph|outline-item/.test(menuItem.label)
+          return HEADING_LABELS.has(menuItem.label)
         })
       }
       case 'outline-item': {
         return wholeSubMenu.filter((menuItem) => {
-          return !/front-matter|hr|table|ul|ol/.test(menuItem.label)
+          return !OUTLINE_COMPATIBLE_BLOCKED_LABELS.has(menuItem.label)
         })
       }
       case 'ul':
       case 'ol': {
         return wholeSubMenu.filter((menuItem) => {
-          return /ul|ol/.test(menuItem.label)
+          return LIST_LABELS.has(menuItem.label)
         })
       }
       case 'blockquote': {
         return wholeSubMenu.filter((menuItem) => {
-          return !/front-matter|hr|table|ul|ol/.test(menuItem.label)
+          return !OUTLINE_COMPATIBLE_BLOCKED_LABELS.has(menuItem.label)
         })
       }
       default:

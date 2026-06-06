@@ -12,12 +12,19 @@ import { getOutlineRenderMetaMap } from 'muya/lib/utils/outlineUtils'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Block = any
+type MenuEntry = { label: string }
 
 const createContentState = (
   options: Record<string, unknown> = {},
   setup?: (contentState: ContentState) => void
 ) => {
-  const muya = {
+  const muya: {
+    options: Record<string, unknown>
+    eventCenter: unknown
+    container: HTMLDivElement
+    blur(): void
+    contentState?: ContentState
+  } = {
     options: Object.assign({}, MUYA_DEFAULT_OPTION, options),
     eventCenter: new EventCenter(),
     container: document.createElement('div'),
@@ -53,7 +60,7 @@ const focusSpan = (contentState: ContentState, spanKey: string, offset = 0) => {
 
 const collectQuickInsertLabels = (outlineBlocksEnabled: boolean) => {
   const obj = filterOutlineQuickInsertObj(createQuickInsertObj(), outlineBlocksEnabled)
-  return Object.values(obj)
+  return (Object.values(obj) as MenuEntry[][])
     .flat()
     .map((item) => item.label)
 }
@@ -70,12 +77,25 @@ describe('outline UI gating and Turn Into', () => {
     const paragraph = { type: 'p' }
     const span = { key: 'span-1' }
 
-    const enabledLabels = enabled(paragraph, span, span).map((item) => item.label)
-    const disabledLabels = disabled(paragraph, span, span).map((item) => item.label)
+    const enabledLabels = enabled(paragraph, span, span).map((item: MenuEntry) => item.label)
+    const disabledLabels = disabled(paragraph, span, span).map((item: MenuEntry) => item.label)
 
     expect(enabledLabels).to.include('outline-item')
     expect(disabledLabels).to.not.include('outline-item')
     expect(filterOutlineMenuEntries([{ label: 'new-outline-group' }], false)).to.have.length(0)
+  })
+
+  it('keeps outline-item available in the outline Turn Into submenu without list entries', () => {
+    const getSubMenu = createGetSubMenu(undefined, true) as ReturnType<typeof createGetSubMenu>
+    const span = { key: 'span-1' }
+    const labels = getSubMenu({ type: 'outline-item' }, span, span).map(
+      (item: MenuEntry) => item.label
+    )
+
+    expect(labels).to.include('outline-item')
+    expect(labels).to.not.include('ul-bullet')
+    expect(labels).to.not.include('ul-task')
+    expect(labels).to.not.include('ol-order')
   })
 
   it('quick-insert creates a depth-1 outline item from an empty paragraph', () => {
@@ -186,7 +206,11 @@ describe('outline UI gating and Turn Into', () => {
 
     expect(headingState.getBlocks()[0].type).to.equal('outline-item')
     expect(headingState.getBlocks()[0].depth).to.equal(1)
-    expect(headingState.getBlocks()[0].children[0].children[0].text).to.equal(
+    expect(headingState.getBlocks()[0].children[0].children[0].text).to.equal('Section')
+
+    headingState.updateParagraph('heading 2')
+    expect(headingState.getBlocks()[0].type).to.equal('h2')
+    expect(headingState.getBlocks()[0].children[0].text).to.equal(
       `##${String.fromCharCode(160)}Section`
     )
 
@@ -200,6 +224,18 @@ describe('outline UI gating and Turn Into', () => {
 
     expect(outlineState.getBlocks()[0].type).to.equal('h2')
     expect(outlineState.getBlocks()[0].children[0].text).to.include('Section')
+  })
+
+  it('keeps non-empty list items blocked from hr and table transforms', () => {
+    const contentState = createContentState({ outlineBlocksEnabled: true })
+    const block = { text: 'List item text' }
+    contentState.getTypeFromBlock = () => 'ul-bullet'
+    contentState.getOutlineItemForBlock = () => null
+
+    expect(contentState.isAllowedTransformation(block, 'hr', false)).to.equal(false)
+    expect(contentState.isAllowedTransformation(block, 'table', false)).to.equal(false)
+    expect(contentState.isAllowedTransformation(block, 'outline-item', false)).to.equal(false)
+    expect(contentState.isAllowedTransformation(block, 'paragraph', false)).to.equal(true)
   })
 
   it('Turn Into blockquote and outline in both directions', () => {

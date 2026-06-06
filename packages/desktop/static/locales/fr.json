@@ -1180,6 +1180,10 @@
       "title": "Bloc de citation",
       "subtitle": "> Contenu de citation"
     },
+    "outlineItem": {
+      "title": "Élément de plan",
+      "subtitle": "I. Élément de plan principal"
+    },
     "orderedList": {
       "title": "Liste ordonnée",
       "subtitle": "1. Élément de liste"
@@ -1277,7 +1281,9 @@
     "heading4": "Titre 4",
     "heading5": "Titre 5",
     "heading6": "Titre 6",
-    "hr": "Ligne horizontale"
+    "hr": "Ligne horizontale",
+    "outlineItem": "Élément de plan",
+    "newOutlineGroup": "Nouveau groupe de plan"
   },
   "editor": {
     "image": {
