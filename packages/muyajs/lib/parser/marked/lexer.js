@@ -2,6 +2,11 @@ import { normal, gfm, pedantic } from './blockRules'
 import options from './options'
 import { splitCells, rtrim, getUniqueId } from './utils'
 import { CURSOR_ANCHOR_DNA, CURSOR_FOCUS_DNA } from '../../config'
+import {
+  matchOutlineGroupStart,
+  tryParseOutlineItem,
+  updateOutlineImportState
+} from '../../utils/outlineUtils'
 
 /**
  * Block Lexer
@@ -30,6 +35,9 @@ Lexer.prototype.lex = function(src, checkCursorSignature = false) {
   src = src.replace(/\r\n|\r/g, '\n').replace(/\t/g, '    ')
   this.checkFrontmatter = true
   this.footnoteOrder = 0
+  this.outlineChainActive = false
+  this.pendingOutlineGroupStart = false
+  this.outlineImportState = { lastByDepth: [] }
   this.token(src, true, null, checkCursorSignature)
 
   // Move footnote token to the end of tokens.
@@ -68,10 +76,21 @@ Lexer.prototype.token = function(
   src,
   top,
   prevListIsOrdered = null,
-  checkCursorSignature = false
+  checkCursorSignature = false,
+  rootDocument = top
 ) {
-  const { footnote, frontMatter, isGitlabCompatibilityEnabled, math } = this.options
+  const {
+    footnote,
+    frontMatter,
+    isGitlabCompatibilityEnabled,
+    math,
+    outlineBlocksEnabled
+  } = this.options
   src = src.replace(/^ +$/gm, '')
+
+  const clearPendingOutlineGroupStart = () => {
+    this.pendingOutlineGroupStart = false
+  }
 
   let loose
   let cap
@@ -138,9 +157,48 @@ Lexer.prototype.token = function(
     if (cap) {
       src = src.substring(cap[0].length)
       if (cap[0].length > 1) {
+        this.pendingOutlineGroupStart = false
         this.tokens.push({
           type: 'space'
         })
+      }
+    }
+
+    // outline (before indented code — AR-2 / issue 06 slice 7)
+    if (outlineBlocksEnabled && top && rootDocument) {
+      cap = matchOutlineGroupStart(src)
+      if (cap) {
+        src = src.substring(cap[0].length)
+        this.pendingOutlineGroupStart = true
+        this.tokens.push({
+          type: 'outline_group_start'
+        })
+        continue
+      }
+
+      const parsed = tryParseOutlineItem(src, {
+        listIndentation: this.options.listIndentation,
+        lastByDepth: this.outlineImportState.lastByDepth,
+        outlineChainActive: this.outlineChainActive,
+        inListContext: prevListIsOrdered !== null,
+        pendingGroupStart: this.pendingOutlineGroupStart
+      })
+
+      if (parsed) {
+        src = src.substring(parsed.consumed.length)
+        if (this.pendingOutlineGroupStart) {
+          this.pendingOutlineGroupStart = false
+        }
+        this.outlineChainActive = true
+        updateOutlineImportState(this.outlineImportState, parsed.depth, parsed.marker)
+        this.tokens.push({
+          type: 'outline_item',
+          depth: parsed.depth,
+          text: cursorAnchorFocus + parsed.text,
+          groupStart: parsed.groupStart,
+          start: parsed.start
+        })
+        continue
       }
     }
 
@@ -154,6 +212,7 @@ Lexer.prototype.token = function(
         lastToken.text += `\n${cap[0].trimRight()}`
       } else {
         cap = cap[0].replace(/^ {4}/gm, '')
+        clearPendingOutlineGroupStart()
         this.tokens.push({
           type: 'code',
           codeBlockStyle: 'indented',
@@ -168,6 +227,7 @@ Lexer.prototype.token = function(
       cap = this.rules.multiplemath.exec(src)
       if (cap) {
         src = src.substring(cap[0].length)
+        clearPendingOutlineGroupStart()
         this.tokens.push({
           type: 'multiplemath',
           text: cursorAnchorFocus + cap[1],
@@ -181,6 +241,7 @@ Lexer.prototype.token = function(
         cap = this.rules.multiplemathGitlab.exec(src)
         if (cap) {
           src = src.substring(cap[0].length)
+          clearPendingOutlineGroupStart()
           this.tokens.push({
             type: 'multiplemath',
             text: cursorAnchorFocus + (cap[2] || ''),
@@ -195,6 +256,7 @@ Lexer.prototype.token = function(
     if (footnote) {
       cap = this.rules.footnote.exec(src)
       if (top && cap) {
+        clearPendingOutlineGroupStart()
         src = src.substring(cap[0].length)
         const identifier = cap[1]
         this.tokens.push({
@@ -216,7 +278,7 @@ Lexer.prototype.token = function(
         cap = cap.replace(/\n {4}(?=[^\s])/g, '\n')
         /* eslint-enable no-useless-escape */
 
-        this.token(cap, top)
+        this.token(cap, top, null, checkCursorSignature, false)
 
         this.tokens.push({
           type: 'footnote_end'
@@ -229,6 +291,7 @@ Lexer.prototype.token = function(
     // fences
     cap = this.rules.fences.exec(src)
     if (cap) {
+      clearPendingOutlineGroupStart()
       src = src.substring(cap[0].length)
       const raw = cap[0]
       const text = cursorAnchorFocus + indentCodeCompensation(raw, cap[3] || '')
@@ -244,6 +307,7 @@ Lexer.prototype.token = function(
     // heading
     cap = this.rules.heading.exec(src)
     if (cap) {
+      clearPendingOutlineGroupStart()
       src = src.substring(cap[0].length)
       let text = cursorAnchorFocus + (cap[2] ? cap[2].trim() : '')
 
@@ -296,6 +360,7 @@ Lexer.prototype.token = function(
           item.cells[i] = splitCells(item.cells[i], item.header.length)
         }
 
+        clearPendingOutlineGroupStart()
         this.tokens.push(item)
 
         continue
@@ -305,6 +370,7 @@ Lexer.prototype.token = function(
     // hr
     cap = this.rules.hr.exec(src)
     if (cap) {
+      clearPendingOutlineGroupStart()
       const marker = cursorAnchorFocus + cap[0].replace(/\n*$/, '')
       src = src.substring(cap[0].length)
       this.tokens.push({
@@ -317,6 +383,7 @@ Lexer.prototype.token = function(
     // blockquote
     cap = this.rules.blockquote.exec(src)
     if (cap) {
+      clearPendingOutlineGroupStart()
       src = src.substring(cap[0].length)
 
       this.tokens.push({
@@ -328,7 +395,7 @@ Lexer.prototype.token = function(
       // Pass `top` to keep the current
       // "toplevel" state. This is exactly
       // how markdown.pl works.
-      this.token(cap, top, null, checkCursorSignature)
+      this.token(cap, top, null, checkCursorSignature, false)
 
       this.tokens.push({
         type: 'blockquote_end'
@@ -342,6 +409,7 @@ Lexer.prototype.token = function(
     // list
     cap = this.rules.list.exec(src)
     if (cap) {
+      clearPendingOutlineGroupStart()
       let checked
       src = src.substring(cap[0].length)
       bull = cap[2]
@@ -509,7 +577,7 @@ Lexer.prototype.token = function(
           })
         } else {
           // Recurse.
-          this.token(item, false, isOrdered, checkCursorSignature)
+          this.token(item, false, isOrdered, checkCursorSignature, false)
         }
 
         this.tokens.push({
@@ -526,6 +594,7 @@ Lexer.prototype.token = function(
     // html
     cap = this.rules.html.exec(src)
     if (cap) {
+      clearPendingOutlineGroupStart()
       src = src.substring(cap[0].length)
       this.tokens.push({
         type: this.options.sanitize ? 'paragraph' : 'html',
@@ -563,6 +632,7 @@ Lexer.prototype.token = function(
         cap = this.rules.def.exec(src)
       } while (cap)
 
+      this.pendingOutlineGroupStart = false
       if (this.options.disableInline) {
         this.tokens.push({
           type: 'paragraph',
@@ -604,6 +674,7 @@ Lexer.prototype.token = function(
           )
         }
 
+        clearPendingOutlineGroupStart()
         this.tokens.push(item)
 
         continue
@@ -613,6 +684,7 @@ Lexer.prototype.token = function(
     // lheading
     cap = this.rules.lheading.exec(src)
     if (cap) {
+      clearPendingOutlineGroupStart()
       const precededToken = this.tokens[this.tokens.length - 1]
       const chops = cap[0].trim().split(/\n/)
       const marker = chops[chops.length - 1]
@@ -645,10 +717,12 @@ Lexer.prototype.token = function(
       src = src.substring(cap[0].length)
 
       if (/^\[toc\]\n?$/i.test(cap[1])) {
+        this.pendingOutlineGroupStart = false
         this.tokens.push({ type: 'toc', text: '[TOC]' })
         continue
       }
 
+      this.pendingOutlineGroupStart = false
       this.tokens.push({
         type: 'paragraph',
         text:

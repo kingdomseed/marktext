@@ -124,8 +124,9 @@ All seven decisions locked. See **Locked decisions** below.
 | Implementation issue 02 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/2 → `8283e2a` |
 | Implementation issue 03 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/3 → `dfb87c6` |
 | Implementation issue 04 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/4 → `4f6ba1d` |
-| Implementation issue 05 | 🔄 Branch `feat/issue-05-enter-backspace` — pending PR |
-| Implementation (issue 06+) | ⏭️ **Next** |
+| Implementation issue 05 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/5 → `d58eb26` |
+| Implementation issue 06 | 🔄 Branch `feat/issue-06-import-lexer` — pending PR |
+| Implementation (issue 07+) | ⏭️ **Next** |
 
 ---
 
@@ -299,9 +300,9 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Next step
 
-**Issue 05** (AFK): Enter / Backspace / Shift+Enter — TDD-first per `.scratch/outline-blocks/issues/05-enter-backspace-shift-enter.md`.
+**Issue 06** (AFK): Markdown import lexer and precedence rules — TDD-first per `.scratch/outline-blocks/issues/06-markdown-import-lexer.md`.
 
-Issues 01–04 merged on `feat/outline-editing-setup` (`4f6ba1d`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
+Issues 01–05 merged on `feat/outline-editing-setup` (`d58eb26`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
 
 ## Implementation order
 

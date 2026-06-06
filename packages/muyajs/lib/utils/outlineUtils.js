@@ -253,6 +253,249 @@ export const getOutlineRenderMeta = (item, blocks, listIndentation) => {
   }
 }
 
+const OUTLINE_GROUP_START = /^<!-- mt:outline-group-start -->(?:\n|$)/
+const OUTLINE_ITEM_LINE =
+  /^([ ]*)((?:[IVXLCDM]+\.|[A-Z]+\.|\d+\.|[a-z]+\.|[ivxlcdm]+\.|\(\d+\)|\([a-z]+\)))(?:[ \t]+([^\n]*?))?(?:\n|$)/
+const LINE = /^([^\n]*)(?:\n|$)/
+
+const parseRomanNumeral = (roman) => {
+  const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 }
+  const str = roman.toUpperCase()
+  let prev = 0
+  let sum = 0
+
+  for (let i = str.length - 1; i >= 0; i--) {
+    const curr = map[str[i]]
+    if (!curr) {
+      return null
+    }
+    if (curr < prev) {
+      sum -= curr
+    } else {
+      sum += curr
+    }
+    prev = curr
+  }
+
+  return sum
+}
+
+const parseAlphaNumeral = (value, upper = true) => {
+  const str = upper ? value.toUpperCase() : value.toLowerCase()
+  let result = 0
+  const base = upper ? 65 : 97
+
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i)
+    if (code < base || code > base + 25) {
+      return null
+    }
+    result = result * 26 + (code - base + 1)
+  }
+
+  return result
+}
+
+/**
+ * Parse the numeric index encoded in a structural outline marker.
+ *
+ * @param {string} marker Marker text including trailing punctuation.
+ * @param {number} depth Outline depth from 1 to 7.
+ * @returns {number|null} Parsed marker index, if valid.
+ */
+export const parseMarkerIndex = (marker, depth) => {
+  if (!markerMatchesDepth(marker, depth)) {
+    return null
+  }
+
+  switch (depth) {
+    case 1:
+      return parseRomanNumeral(marker.slice(0, -1))
+    case 2:
+      return parseAlphaNumeral(marker.slice(0, -1), true)
+    case 3:
+      return parseInt(marker.slice(0, -1), 10)
+    case 4:
+      return parseAlphaNumeral(marker.slice(0, -1), false)
+    case 5:
+      return parseRomanNumeral(marker.slice(0, -1))
+    case 6:
+      return parseInt(marker.slice(1, -1), 10)
+    case 7:
+      return parseAlphaNumeral(marker.slice(1, -1), false)
+    default:
+      return null
+  }
+}
+
+export const matchOutlineGroupStart = (src) => OUTLINE_GROUP_START.exec(src)
+
+const buildAncestorMarkers = (lastByDepth, depth) => {
+  const markers = []
+
+  for (let d = 1; d < depth; d++) {
+    if (lastByDepth[d]) {
+      markers.push(lastByDepth[d])
+    }
+  }
+
+  return markers
+}
+
+const buildNextLastByDepth = (lastByDepth, depth, marker) => {
+  const nextLastByDepth = lastByDepth.slice()
+  nextLastByDepth[depth] = marker
+
+  for (let d = depth + 1; d <= 7; d++) {
+    delete nextLastByDepth[d]
+  }
+
+  return nextLastByDepth
+}
+
+const lineStartsOutlineItem = (src, context, currentDepth, currentMarker) => {
+  const cap = OUTLINE_ITEM_LINE.exec(src)
+  if (!cap) {
+    return false
+  }
+
+  const nextLastByDepth = buildNextLastByDepth(
+    context.lastByDepth,
+    currentDepth,
+    currentMarker
+  )
+  const leadingSpaces = cap[1].length
+  const marker = cap[2]
+  const ancestorMarkers = buildAncestorMarkers(nextLastByDepth, 7)
+
+  if (leadingSpaces === 0 && /^\d+\.$/.test(marker) && !context.outlineChainActive) {
+    return false
+  }
+
+  const depth = depthFromIndent(leadingSpaces, marker, context.listIndentation, ancestorMarkers)
+  if (depth === null) {
+    return false
+  }
+
+  return !(depth === 3 && /^\d+\.$/.test(marker) && context.inListContext)
+}
+
+const parseOutlineContinuationLines = (src, continuationIndent, context, depth, marker) => {
+  let rest = src
+  let consumed = ''
+  const lines = []
+
+  while (rest) {
+    if (OUTLINE_GROUP_START.test(rest)) {
+      break
+    }
+
+    const line = LINE.exec(rest)
+    if (!line || !line[0]) {
+      break
+    }
+
+    const text = line[1]
+    const leadingSpaces = /^ */.exec(text)[0].length
+    if (leadingSpaces !== continuationIndent || !text.slice(continuationIndent)) {
+      break
+    }
+
+    if (lineStartsOutlineItem(rest, context, depth, marker)) {
+      break
+    }
+
+    lines.push(text.slice(continuationIndent))
+    consumed += line[0]
+    rest = rest.substring(line[0].length)
+  }
+
+  return { consumed, lines }
+}
+
+/**
+ * Try to parse one outline marker line from import markdown.
+ *
+ * @param {string} src Remaining markdown source.
+ * @param {Object} context Import lexer context.
+ * @returns {Object|null} Parsed outline item payload.
+ */
+export const tryParseOutlineItem = (src, context) => {
+  const {
+    listIndentation,
+    lastByDepth,
+    outlineChainActive,
+    inListContext,
+    pendingGroupStart
+  } = context
+
+  const cap = OUTLINE_ITEM_LINE.exec(src)
+  if (!cap) {
+    return null
+  }
+
+  const leadingSpaces = cap[1].length
+  const marker = cap[2]
+  let body = cap[3] || ''
+  const ancestorMarkers = buildAncestorMarkers(lastByDepth, 7)
+
+  if (leadingSpaces === 0 && /^\d+\.$/.test(marker) && !outlineChainActive) {
+    return null
+  }
+
+  const depth = depthFromIndent(leadingSpaces, marker, listIndentation, ancestorMarkers)
+  if (depth === null) {
+    return null
+  }
+
+  if (depth === 3 && /^\d+\.$/.test(marker) && inListContext) {
+    return null
+  }
+
+  let groupStart = false
+  let start
+
+  if (pendingGroupStart && depth === 1) {
+    groupStart = true
+    start = parseMarkerIndex(marker, 1)
+    if (start == null) {
+      return null
+    }
+  }
+
+  let consumed = cap[0]
+  const continuation = parseOutlineContinuationLines(
+    src.substring(consumed.length),
+    leadingSpaces + markerWidth(marker),
+    context,
+    depth,
+    marker
+  )
+
+  if (continuation.lines.length) {
+    const continuationText = continuation.lines.join('\n')
+    body = body ? `${body}\n${continuationText}` : continuationText
+    consumed += continuation.consumed
+  }
+
+  return {
+    consumed,
+    depth,
+    marker,
+    text: body,
+    groupStart,
+    start
+  }
+}
+
+export const updateOutlineImportState = (state, depth, marker) => {
+  state.lastByDepth[depth] = marker
+
+  for (let d = depth + 1; d <= 7; d++) {
+    delete state.lastByDepth[d]
+  }
+}
+
 export function * walkOutlineGroups(blocks) {
   let currentGroup = []
 

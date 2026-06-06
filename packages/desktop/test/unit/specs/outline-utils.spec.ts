@@ -20,14 +20,20 @@ interface BlockStub {
   start?: number
 }
 
-const createMuyaContext = () => {
+interface MuyaContextStub {
+  options: Record<string, unknown>
+  eventCenter: unknown
+  contentState: ContentState
+}
+
+const createMuyaContext = (): MuyaContextStub => {
   const ctx = {
     options: Object.assign({}, MUYA_DEFAULT_OPTION),
     eventCenter: new EventCenter()
   }
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ;(ctx as any).contentState = new ContentState(ctx, ctx.options)
-  return ctx
+  return Object.assign(ctx, {
+    contentState: new ContentState(ctx, ctx.options)
+  })
 }
 
 describe('outlineUtils', () => {

@@ -31,6 +31,8 @@ export default {
   frontMatter: true,
   superSubScript: false,
   footnote: false,
+  outlineBlocksEnabled: false,
+  listIndentation: 1,
   isGitlabCompatibilityEnabled: false,
 
   isHtmlEnabled: true
