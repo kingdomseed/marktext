@@ -1,6 +1,6 @@
 # WYSIWYG render and editor theme CSS
 
-**Status:** implemented — pending PR  
+**Status:** merged — PR #3  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-12, US-20, US-28, US-29, US-56
 

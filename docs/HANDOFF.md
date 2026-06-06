@@ -122,8 +122,9 @@ All seven decisions locked. See **Locked decisions** below.
 | Implementation issue 01 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/1 → `6e9b137` |
 | Dev smoke test | ❌ Not run |
 | Implementation issue 02 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/2 → `8283e2a` |
-| Implementation issue 03 | 🔄 Branch `feat/issue-03-wysiwyg-render` — pending PR |
-| Implementation (issue 04+) | ⏭️ **Next** |
+| Implementation issue 03 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/3 → `dfb87c6` |
+| Implementation issue 04 | 🔄 Branch `feat/issue-04-tab-cascade` — pending PR |
+| Implementation (issue 05+) | ⏭️ **Next** |
 
 ---
 
@@ -297,9 +298,9 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Next step
 
-**Issue 03** (AFK): WYSIWYG render + editor theme CSS — TDD-first per `.scratch/outline-blocks/issues/03-wysiwyg-render-theme-css.md`.
+**Issue 04** (AFK): Tab / Shift+Tab depth change + reparenting cascade — TDD-first per `.scratch/outline-blocks/issues/04-tab-shift-tab-cascade.md`.
 
-Issues 01–02 merged on `feat/outline-editing-setup` (`8283e2a`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
+Issues 01–03 merged on `feat/outline-editing-setup` (`dfb87c6`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
 
 ## Implementation order
 

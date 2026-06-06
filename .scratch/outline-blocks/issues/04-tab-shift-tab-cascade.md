@@ -1,6 +1,6 @@
 # Tab / Shift+Tab depth change and reparenting cascade
 
-**Status:** ready-for-agent  
+**Status:** implemented — pending PR  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-13, US-14, US-15, US-16, US-17, US-19, US-20, US-23, US-48
 
@@ -26,11 +26,11 @@ Implement in `outlineCtrl.js`: `isIndentableOutlineItem`, `isOutdentableOutlineI
 
 ## Acceptance criteria
 
-- [ ] All TDD slices pass
-- [ ] Tab/Shift+Tab change depth without inserting spaces into body text
-- [ ] Reparenting cascade and sibling renumbering match AR-1 / US-19
-- [ ] Depth 7 Tab no-op; depth 1 Shift+Tab no-op
-- [ ] `pnpm run lint` and `pnpm run test` pass
+- [x] All TDD slices pass
+- [x] Tab/Shift+Tab change depth without inserting spaces into body text
+- [x] Reparenting cascade and sibling renumbering match AR-1 / US-19
+- [x] Depth 7 Tab no-op; depth 1 Shift+Tab no-op
+- [x] `pnpm run lint` and `pnpm run test` pass
 
 ## Blocked by
 

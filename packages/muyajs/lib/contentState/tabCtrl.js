@@ -398,6 +398,10 @@ const tabCtrl = (ContentState) => {
     const endBlock = this.getBlock(end.key)
 
     if (event.shiftKey && startBlock.functionType !== 'cellContent') {
+      if (this.isOutdentableOutlineItem(startBlock)) {
+        return this.outdentOutlineItem()
+      }
+
       const unindentType = this.isUnindentableListItem(startBlock)
       if (unindentType) {
         this.unindentListItem(startBlock, unindentType)
@@ -508,6 +512,10 @@ const tabCtrl = (ContentState) => {
 
       const figure = this.closest(nextCell, 'figure')
       return this.singleRender(figure)
+    }
+
+    if (this.isIndentableOutlineItem()) {
+      return this.indentOutlineItem()
     }
 
     if (this.isIndentableListItem()) {
