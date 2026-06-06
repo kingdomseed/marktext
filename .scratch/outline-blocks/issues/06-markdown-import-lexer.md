@@ -1,6 +1,6 @@
 # Markdown import lexer and precedence rules
 
-**Status:** pr-open  
+**Status:** merged — PR #6  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-31, US-32, US-33, US-34, US-35, US-36, US-37, US-41
 

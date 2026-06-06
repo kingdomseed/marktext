@@ -1,6 +1,6 @@
 # Markdown export and round-trip tests
 
-**Status:** ready-for-agent  
+**Status:** pr-open  
 **Parent:** `.scratch/outline-blocks/PRD.md`  
 **User stories:** US-38, US-39, US-40, US-42, US-43
 
@@ -27,11 +27,11 @@
 
 ## Acceptance criteria
 
-- [ ] All AR-2 fixture trees pass at `listIndentation` 1, 2, `dfm` in `markdown-outline-indentation.spec.ts`
-- [ ] `normalizeOutlineItem` handles group-start and restart roots
-- [ ] Round-trip preserves depth structure and body text
-- [ ] Pref-off export of existing outline items works
-- [ ] `pnpm run lint` and `pnpm run test` pass
+- [x] All AR-2 fixture trees pass at `listIndentation` 1, 2, `dfm` in `markdown-outline-indentation.spec.ts`
+- [x] `normalizeOutlineItem` handles group-start and restart roots
+- [x] Round-trip preserves depth structure and body text
+- [x] Pref-off export of existing outline items works
+- [x] `pnpm run lint` and `pnpm run test` pass
 
 ## Blocked by
 

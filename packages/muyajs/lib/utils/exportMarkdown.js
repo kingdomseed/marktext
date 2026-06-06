@@ -9,6 +9,10 @@
  * The output markdown needs to obey the standards of these Spec.
  */
 
+import { getOutlineRenderMetaMap, markerWidth } from './outlineUtils'
+
+const OUTLINE_GROUP_START_SENTINEL = '<!-- mt:outline-group-start -->\n'
+
 class ExportMarkdown {
   constructor(blocks, listIndentation = 1, isGitlabCompatibilityEnabled = false) {
     this.blocks = blocks
@@ -27,6 +31,11 @@ class ExportMarkdown {
     } else {
       this.listIndentationCount = 1
     }
+
+    this.outlineRenderMetaMap = getOutlineRenderMetaMap(
+      blocks,
+      this.listIndentation === 'dfm' ? 'dfm' : this.listIndentationCount
+    )
   }
 
   generate() {
@@ -161,6 +170,10 @@ class ExportMarkdown {
         case 'blockquote': {
           this.insertLineBreak(result, indent)
           result.push(this.normalizeBlockquote(block, indent))
+          break
+        }
+        case 'outline-item': {
+          result.push(this.normalizeOutlineItem(block))
           break
         }
         default: {
@@ -374,6 +387,30 @@ class ExportMarkdown {
   normalizeList(block, indent, listIndent) {
     const { children } = block
     return this.translateBlocks2Markdown(children, indent, listIndent)
+  }
+
+  normalizeOutlineItem(block) {
+    const meta = this.outlineRenderMetaMap.get(block)
+    if (!meta) {
+      console.warn('normalizeOutlineItem: missing render metadata for outline item')
+      return ''
+    }
+
+    const { marker, indent: outlineIndent } = meta
+    const lineIndent = ' '.repeat(outlineIndent)
+    const itemMarker = `${marker} `
+    const newIndent = lineIndent + ' '.repeat(markerWidth(marker))
+    const result = []
+
+    if (block.groupStart) {
+      result.push(OUTLINE_GROUP_START_SENTINEL)
+    }
+
+    result.push(`${lineIndent}${itemMarker}`)
+    result.push(
+      this.translateBlocks2Markdown(block.children, newIndent).substring(newIndent.length)
+    )
+    return result.join('')
   }
 
   normalizeListItem(block, indent) {
