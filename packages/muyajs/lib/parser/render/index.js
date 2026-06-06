@@ -3,6 +3,7 @@ import { CLASS_OR_ID, PREVIEW_DOMPURIFY_CONFIG } from '../../config'
 import { conflict, mixins, camelToSnake, sanitize } from '../../utils'
 import { patch, toVNode, toHTML, h } from './snabbdom'
 import { beginRules } from '../rules'
+import { getOutlineRenderMetaMap } from '../../utils/outlineUtils'
 import renderInlines from './renderInlines'
 import renderBlock from './renderBlock'
 
@@ -20,6 +21,7 @@ class StateRender {
     this.urlMap = new Map()
     this.renderingTable = null
     this.renderingRowContainer = null
+    this.outlineRenderMetaMap = new Map()
     this.container = null
   }
 
@@ -179,6 +181,7 @@ class StateRender {
   render(blocks, activeBlocks, matches) {
     const selector = `div#${CLASS_OR_ID.AG_EDITOR_ID}`
     const t = this.muya.options.t || ((key) => key) // Get the translation function, falling back to returning the key itself if absent
+    this.outlineRenderMetaMap = getOutlineRenderMetaMap(blocks, this.muya.options.listIndentation)
     const children = blocks.map((block) => {
       return this.renderBlock(null, block, activeBlocks, matches, true, t)
     })
@@ -198,6 +201,10 @@ class StateRender {
     // If cursor is not in render blocks, need to render cursor block independently
     const needRenderCursorBlock = blocks.indexOf(cursorOutMostBlock) === -1
     const t = this.muya.options.t || ((key) => key) // Get the translation function, falling back to returning the key itself if absent
+    this.outlineRenderMetaMap = getOutlineRenderMetaMap(
+      this.muya.contentState.getBlocks(),
+      this.muya.options.listIndentation
+    )
     const newVnode = h(
       'section',
       blocks.map((block) => this.renderBlock(null, block, activeBlocks, matches, false, t))
@@ -257,6 +264,10 @@ class StateRender {
   singleRender(block, activeBlocks, matches) {
     const selector = `#${block.key}`
     const t = this.muya.options.t || ((key) => key) // Get the translation function, falling back to returning the key itself if absent
+    this.outlineRenderMetaMap = getOutlineRenderMetaMap(
+      this.muya.contentState.getBlocks(),
+      this.muya.options.listIndentation
+    )
     const newVdom = this.renderBlock(null, block, activeBlocks, matches, true, t)
     const rootDom = document.querySelector(selector)
     const oldVdom = toVNode(rootDom)

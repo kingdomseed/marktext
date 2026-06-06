@@ -8,6 +8,8 @@ import {
   indentForDepth,
   depthFromIndent,
   markerMatchesDepth,
+  getOutlineRenderMeta,
+  getOutlineRenderMetaMap,
   walkOutlineGroups
 } from 'muya/lib/utils/outlineUtils'
 
@@ -132,6 +134,67 @@ describe('outlineUtils', () => {
     expect(groups[1]).to.have.length(2)
     expect(groups[1][0].groupStart).to.equal(true)
     expect(groups[1][1].depth).to.equal(2)
+  })
+
+  it('getOutlineRenderMeta computes sibling markers by implicit parent', () => {
+    const firstRoot: BlockStub = { type: 'outline-item', depth: 1 }
+    const firstChild: BlockStub = { type: 'outline-item', depth: 2 }
+    const secondRoot: BlockStub = { type: 'outline-item', depth: 1 }
+    const secondChild: BlockStub = { type: 'outline-item', depth: 2 }
+    const blocks = [firstRoot, firstChild, { type: 'p' }, secondRoot, secondChild]
+
+    expect(getOutlineRenderMeta(firstRoot, blocks, 2)).to.include({
+      marker: 'I.',
+      siblingIndex: 0
+    })
+    expect(getOutlineRenderMeta(firstChild, blocks, 2)).to.include({
+      marker: 'A.',
+      siblingIndex: 0
+    })
+    expect(getOutlineRenderMeta(secondRoot, blocks, 2)).to.include({
+      marker: 'II.',
+      siblingIndex: 1
+    })
+    expect(getOutlineRenderMeta(secondChild, blocks, 2)).to.include({
+      marker: 'A.',
+      siblingIndex: 0
+    })
+  })
+
+  it('getOutlineRenderMetaMap computes all item metadata in one pass', () => {
+    const firstRoot: BlockStub = { type: 'outline-item', depth: 1 }
+    const firstChild: BlockStub = { type: 'outline-item', depth: 2 }
+    const secondRoot: BlockStub = { type: 'outline-item', depth: 1 }
+    const secondChild: BlockStub = { type: 'outline-item', depth: 2 }
+    const blocks = [firstRoot, firstChild, { type: 'p' }, secondRoot, secondChild]
+    const metaMap = getOutlineRenderMetaMap(blocks, 2)
+
+    expect(metaMap.size).to.equal(4)
+    expect(metaMap.get(firstRoot)).to.include({ marker: 'I.', siblingIndex: 0 })
+    expect(metaMap.get(firstChild)).to.include({ marker: 'A.', siblingIndex: 0 })
+    expect(metaMap.get(secondRoot)).to.include({ marker: 'II.', siblingIndex: 1 })
+    expect(metaMap.get(secondChild)).to.include({ marker: 'A.', siblingIndex: 0 })
+  })
+
+  it('getOutlineRenderMeta uses restart markers for descendant indentation', () => {
+    const originalRoot: BlockStub = { type: 'outline-item', depth: 1 }
+    const restartRoot: BlockStub = {
+      type: 'outline-item',
+      depth: 1,
+      groupStart: true,
+      start: 11
+    }
+    const restartChild: BlockStub = { type: 'outline-item', depth: 2 }
+    const blocks = [originalRoot, restartRoot, restartChild]
+
+    expect(getOutlineRenderMeta(restartRoot, blocks, 1)).to.include({
+      marker: 'XI.',
+      siblingIndex: 0
+    })
+    expect(getOutlineRenderMeta(restartChild, blocks, 1)).to.include({
+      marker: 'A.',
+      indent: indentForDepth(2, 1, ['XI.'])
+    })
   })
 })
 

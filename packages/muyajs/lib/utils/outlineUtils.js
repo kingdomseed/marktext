@@ -144,6 +144,13 @@ export const depthFromIndent = (leadingSpaces, marker, listIndentation, ancestor
   return null
 }
 
+/**
+ * Find the nearest preceding outline item one depth above in a logical group.
+ *
+ * @param {Object} item Outline item to resolve.
+ * @param {Object[]} group Logical outline group from `walkOutlineGroups`.
+ * @returns {Object|null} The implicit parent, if one exists.
+ */
 export const findImplicitParentInGroup = (item, group) => {
   const itemIndex = group.indexOf(item)
   if (itemIndex < 0) {
@@ -159,54 +166,84 @@ export const findImplicitParentInGroup = (item, group) => {
   return null
 }
 
-const getSiblingIndexInGroup = (item, group) => {
-  const parent = findImplicitParentInGroup(item, group)
-  const itemIndex = group.indexOf(item)
-  let siblingIndex = 0
+const ROOT_PARENT = {}
 
-  for (let i = 0; i < itemIndex; i++) {
-    const candidate = group[i]
-    if (
-      candidate.depth === item.depth &&
-      findImplicitParentInGroup(candidate, group) === parent
-    ) {
-      siblingIndex++
-    }
+const getSiblingCountMap = (siblingCounts, parent) => {
+  const parentKey = parent || ROOT_PARENT
+  let countMap = siblingCounts.get(parentKey)
+
+  if (!countMap) {
+    countMap = new Map()
+    siblingCounts.set(parentKey, countMap)
   }
 
-  return siblingIndex
+  return countMap
 }
 
-const buildAncestorMarkers = (item, group) => {
+const buildAncestorMarkersFromParents = (item, parentByItem, markerByItem) => {
   const markers = []
-  let current = item
+  let current = parentByItem.get(item)
 
-  while (current.depth > 1) {
-    const parent = findImplicitParentInGroup(current, group)
-    if (!parent) {
-      break
-    }
-    markers.unshift(computeMarker(parent, { siblingIndex: getSiblingIndexInGroup(parent, group) }))
-    current = parent
+  while (current) {
+    markers.unshift(markerByItem.get(current))
+    current = parentByItem.get(current)
   }
 
   return markers
 }
 
-export const getOutlineRenderMeta = (item, blocks, listIndentation) => {
+/**
+ * Compute render metadata for all outline items in one document walk.
+ *
+ * @param {Object[]} blocks Top-level document blocks.
+ * @param {number|string} listIndentation Existing list indentation preference.
+ * @returns {Map<Object, {marker: string, indent: number, siblingIndex: number}>} Metadata by item.
+ */
+export const getOutlineRenderMetaMap = (blocks, listIndentation) => {
+  const metaByItem = new Map()
+
   for (const group of walkOutlineGroups(blocks)) {
-    if (!group.includes(item)) {
-      continue
-    }
+    const lastByDepth = []
+    const parentByItem = new Map()
+    const markerByItem = new Map()
+    const siblingCounts = new Map()
 
-    const siblingIndex = getSiblingIndexInGroup(item, group)
-    const ancestorMarkers = buildAncestorMarkers(item, group)
+    for (const item of group) {
+      const parent = item.depth > 1 ? lastByDepth[item.depth - 1] || null : null
+      const countMap = getSiblingCountMap(siblingCounts, parent)
+      const siblingIndex = countMap.get(item.depth) || 0
+      const marker = computeMarker(item, { siblingIndex })
 
-    return {
-      marker: computeMarker(item, { siblingIndex }),
-      indent: indentForDepth(item.depth, listIndentation, ancestorMarkers),
-      siblingIndex
+      parentByItem.set(item, parent)
+      markerByItem.set(item, marker)
+      countMap.set(item.depth, siblingIndex + 1)
+      lastByDepth[item.depth] = item
+
+      const ancestorMarkers = buildAncestorMarkersFromParents(item, parentByItem, markerByItem)
+
+      metaByItem.set(item, {
+        marker,
+        indent: indentForDepth(item.depth, listIndentation, ancestorMarkers),
+        siblingIndex
+      })
     }
+  }
+
+  return metaByItem
+}
+
+/**
+ * Compute marker, sibling index, and cumulative indent for rendering one item.
+ *
+ * @param {Object} item Outline item to render.
+ * @param {Object[]} blocks Top-level document blocks.
+ * @param {number|string} listIndentation Existing list indentation preference.
+ * @returns {{marker: string, indent: number, siblingIndex: number}} Render metadata.
+ */
+export const getOutlineRenderMeta = (item, blocks, listIndentation) => {
+  const meta = getOutlineRenderMetaMap(blocks, listIndentation).get(item)
+  if (meta) {
+    return meta
   }
 
   return {

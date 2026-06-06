@@ -1157,7 +1157,8 @@ span.ag-reference-link {
 .ag-focus-mode h6.ag-paragraph,
 .ag-focus-mode th.ag-paragraph,
 .ag-focus-mode td.ag-paragraph,
-.ag-focus-mode pre.ag-paragraph {
+.ag-focus-mode pre.ag-paragraph,
+.ag-focus-mode .ag-outline-item {
   opacity: 0.25;
 }
 
@@ -1171,7 +1172,8 @@ span.ag-reference-link {
 .ag-focus-mode h6.ag-active,
 .ag-focus-mode th.ag-active,
 .ag-focus-mode td.ag-active,
-.ag-focus-mode pre.ag-active {
+.ag-focus-mode pre.ag-active,
+.ag-focus-mode .ag-outline-item.ag-active {
   opacity: 1;
 }
 
@@ -1205,7 +1207,8 @@ span.ag-reference-link {
   display: block;
 }
 
-.ag-paragraph.ag-active .ag-front-icon {
+.ag-paragraph.ag-active .ag-front-icon,
+.ag-outline-item.ag-active .ag-front-icon {
   display: block;
 }
 

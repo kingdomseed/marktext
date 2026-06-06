@@ -78,7 +78,12 @@ export const findNearestParagraph = (node) => {
 export const findOutMostParagraph = (node) => {
   do {
     const parentNode = node.parentNode
-    if (isMuyaEditorElement(parentNode) && isAganippeParagraph(node)) return node
+    if (
+      isMuyaEditorElement(parentNode) &&
+      (isAganippeParagraph(node) || isOutlineItemElement(node))
+    ) {
+      return node
+    }
     node = parentNode
   } while (node)
   return null
@@ -88,11 +93,16 @@ export const isAganippeParagraph = (element) => {
   return element && element.classList && element.classList.contains(CLASS_OR_ID.AG_PARAGRAPH)
 }
 
+export const isOutlineItemElement = (element) => {
+  return element && element.classList && element.classList.contains(CLASS_OR_ID.AG_OUTLINE_ITEM)
+}
+
 export const isBlockContainer = (element) => {
   return (
-    element &&
-    element.nodeType !== 3 &&
-    blockContainerElementNames.indexOf(element.nodeName.toLowerCase()) !== -1
+    (element &&
+      element.nodeType !== 3 &&
+      blockContainerElementNames.indexOf(element.nodeName.toLowerCase()) !== -1) ||
+    isOutlineItemElement(element)
   )
 }
 

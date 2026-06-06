@@ -22,7 +22,6 @@ const PRE_BLOCK_HASH = {
 }
 
 export default function renderContainerBlock(parent, block, activeBlocks, matches, useCache = false, t) {
-  let selector = this.getSelector(block, activeBlocks)
   const {
     key,
     align,
@@ -37,6 +36,7 @@ export default function renderContainerBlock(parent, block, activeBlocks, matche
     lang,
     column
   } = block
+  let selector = type === 'outline-item' ? '' : this.getSelector(block, activeBlocks)
 
   if (type === 'table') {
     this.renderingTable = block
@@ -173,7 +173,8 @@ export default function renderContainerBlock(parent, block, activeBlocks, matche
   } else if (type === 'outline-item') {
     const blocks = this.muya.contentState.getBlocks()
     const listIndentation = this.muya.options.listIndentation
-    const { marker, indent } = getOutlineRenderMeta(block, blocks, listIndentation)
+    const { marker, indent } =
+      this.outlineRenderMetaMap.get(block) || getOutlineRenderMeta(block, blocks, listIndentation)
     const { cursor, selectedBlock } = this.muya.contentState
     const isActive =
       activeBlocks.some((b) => b.key === block.key) || block.key === cursor.start.key
