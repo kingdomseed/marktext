@@ -104,6 +104,7 @@ const COMMAND_KEY_MAP: Record<string, string> = {
   'paragraph.bullet-list': 'commands.paragraph.bulletList',
   'paragraph.task-list': 'commands.paragraph.taskList',
   'paragraph.loose-list-item': 'commands.paragraph.looseListItem',
+  'paragraph.restart-outline-group': 'commands.paragraph.restartOutlineGroup',
 
   // Paragraph types
   'paragraph.paragraph': 'commands.paragraph.paragraph',

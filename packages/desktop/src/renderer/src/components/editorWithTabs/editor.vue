@@ -1006,6 +1006,10 @@ const handleEditParagraph = (type: unknown) => {
     nextTick(() => {
       rowInput.value?.focus()
     })
+  } else if (type === 'restart-outline-group') {
+    const contentState = editor.value?.contentState
+    const item = contentState?.getOutlineItemAtCursor()
+    contentState?.restartOutlineGroup(item)
   } else if (editor.value) {
     editor.value.updateParagraph(type)
   }

@@ -68,6 +68,7 @@ const keybindings: Map<string, string> = new Map([
   ['paragraph.bullet-list', 'Ctrl+H'],
   ['paragraph.task-list', 'Ctrl+Shift+X'],
   ['paragraph.loose-list-item', 'Ctrl+Shift+L'],
+  ['paragraph.restart-outline-group', ''],
   ['paragraph.paragraph', 'Ctrl+Shift+0'],
   ['paragraph.horizontal-line', 'Ctrl+_'], // Ctrl+Shift+-
   ['paragraph.front-matter', 'Ctrl+Shift+Y'],

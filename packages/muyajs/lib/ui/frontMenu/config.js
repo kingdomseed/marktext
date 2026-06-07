@@ -15,6 +15,11 @@ const createWholeSubMenu = (t) => {
 }
 
 const COMMAND_KEY = isOsx ? '⌘' : '⌃'
+const OPTION_KEY = isOsx ? '⌥' : 'Alt'
+const SHIFT_KEY = isOsx ? '⇧' : 'Shift'
+const RESTART_OUTLINE_GROUP_SHORTCUT = isOsx
+  ? `${OPTION_KEY}${SHIFT_KEY}${COMMAND_KEY}G`
+  : ''
 const PARAGRAPH_BLOCKED_LABELS = new Set(['front-matter', 'hr', 'table'])
 const MULTILINE_PARAGRAPH_BLOCKED_LABELS = new Set([
   ...PARAGRAPH_BLOCKED_LABELS,
@@ -61,6 +66,12 @@ export const createMenu = (t) => {
       text: translate('frontMenu.turnInto')
     },
     {
+      icon: turnIcon,
+      label: 'new-outline-group',
+      text: translate('frontMenu.newOutlineGroup'),
+      shortCut: RESTART_OUTLINE_GROUP_SHORTCUT
+    },
+    {
       icon: newIcon,
       label: 'new',
       text: translate('frontMenu.newParagraph'),
@@ -71,11 +82,6 @@ export const createMenu = (t) => {
       label: 'delete',
       text: translate('frontMenu.delete'),
       shortCut: `⇧${COMMAND_KEY}D`
-    },
-    {
-      icon: turnIcon,
-      label: 'new-outline-group',
-      text: translate('frontMenu.newOutlineGroup')
     }
   ]
 }

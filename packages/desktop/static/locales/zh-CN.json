@@ -452,7 +452,7 @@
         "frontmatterType": "前言类型",
         "superSubScript": "启用 Pandoc 的 Markdown 扩展上标和下标",
         "footnote": "启用 Pandoc 的 Markdown 扩展脚注",
-        "outlineBlocksEnabled": "启用学术样式大纲块（罗马数字/字母/十进制层级，使用 Tab 进行块级缩进）",
+        "outlineBlocksEnabled": "启用大纲块",
         "isHtmlEnabled": "启用 HTML 渲染",
         "isGitlabCompatibilityEnabled": "启用 GitLab 兼容模式",
         "sequenceTheme": "序列图主题",
@@ -745,7 +745,6 @@
         "superSubScript": "上标/下标",
         "footnote": "脚注",
         "outlineBlocksEnabled": "大纲块",
-        "outlineBlocksEnabledNotes": "会话中启用不会重新导入当前打开的文档。会话中禁用会保留现有大纲项可编辑。",
         "isHtmlEnabled": "启用 HTML",
         "isGitlabCompatibilityEnabled": "GitLab 兼容性",
         "sequenceTheme": "序列主题",
@@ -976,6 +975,7 @@
       "horizontalRule": "水平分割线",
       "horizontalLine": "水平分割线",
       "frontMatter": "前置元数据",
+      "restartOutlineGroup": "重新开始大纲",
       "resetParagraph": "重置段落"
     },
     "format": {
@@ -1290,7 +1290,7 @@
     "heading6": "六级标题",
     "hr": "分隔线",
     "outlineItem": "大纲项",
-    "newOutlineGroup": "新建大纲组"
+    "newOutlineGroup": "新建大纲"
   },
   "editor": {
     "image": {

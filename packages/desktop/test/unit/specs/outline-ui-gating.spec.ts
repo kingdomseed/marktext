@@ -7,7 +7,7 @@ import {
   filterOutlineQuickInsertObj,
   filterOutlineMenuEntries
 } from 'muya/lib/ui/quickInsert/config'
-import { createGetSubMenu } from 'muya/lib/ui/frontMenu/config'
+import { createGetSubMenu, createMenu } from 'muya/lib/ui/frontMenu/config'
 import { getOutlineRenderMetaMap } from 'muya/lib/utils/outlineUtils'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,6 +66,13 @@ const collectQuickInsertLabels = (outlineBlocksEnabled: boolean) => {
 }
 
 describe('outline UI gating and Turn Into', () => {
+  it('keeps the new outline action near Turn Into before destructive actions', () => {
+    const labels = (createMenu() as MenuEntry[]).map((item) => item.label)
+
+    expect(labels.indexOf('new-outline-group')).to.equal(labels.indexOf('turnInto') + 1)
+    expect(labels.indexOf('new-outline-group')).to.be.lessThan(labels.indexOf('delete'))
+  })
+
   it('removes outline quick-insert entries when outlineBlocksEnabled is false', () => {
     expect(collectQuickInsertLabels(false)).to.not.include('outline-item')
     expect(collectQuickInsertLabels(true)).to.include('outline-item')

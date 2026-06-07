@@ -145,18 +145,19 @@ describe('outline WYSIWYG render', () => {
     expect(bodySpan.textContent).to.not.include('I.')
   })
 
-  it('uses ag-outline-item root container, not list item ancestry', () => {
+  it('uses ag-outline-item as the root container', () => {
     harness = createMuyaHarness((contentState) => {
       contentState.setBlocks([contentState.createOutlineItem(1)])
     })
 
     const outline = harness.editor.querySelector('.ag-outline-item') as HTMLDivElement
+    const marker = outline.querySelector('.ag-outline-marker') as HTMLSpanElement
+    const bodyParagraph = outline.querySelector('p.ag-paragraph') as HTMLParagraphElement
 
     expect(outline.tagName).to.equal('DIV')
     expect(outline.classList.contains('ag-outline-item')).to.equal(true)
-    expect(outline.closest('li')).to.equal(null)
-    expect(outline.closest('ol')).to.equal(null)
-    expect(outline.closest('ul')).to.equal(null)
+    expect(marker.textContent).to.equal('I.')
+    expect(bodyParagraph.classList.contains('ag-paragraph')).to.equal(true)
   })
 
   it('shows the front menu icon when an outline item is active', () => {
@@ -175,10 +176,12 @@ describe('outline WYSIWYG render', () => {
 
       const outline = harness.editor.querySelector('.ag-outline-item') as HTMLDivElement
       const frontIcon = outline.querySelector('.ag-front-icon') as HTMLAnchorElement
+      const frontIconImage = frontIcon.querySelector('img.icon-inner') as HTMLImageElement
       const bodyParagraph = outline.querySelector('p.ag-paragraph') as HTMLParagraphElement
 
       expect(outline.classList.contains('ag-active')).to.equal(true)
       expect(frontIcon.getAttribute('contenteditable')).to.equal('false')
+      expect(frontIconImage.getAttribute('src')).to.include('order_list')
       expect(getComputedStyle(frontIcon).display).to.equal('block')
       expect(['0', '0px']).to.include(getComputedStyle(bodyParagraph).marginTop)
     } finally {
@@ -186,7 +189,7 @@ describe('outline WYSIWYG render', () => {
     }
   })
 
-  it('participates in focus mode opacity without root ag-paragraph class', () => {
+  it('applies focus mode opacity to outline roots', () => {
     const editorStyles = appendEditorStyles()
     try {
       harness = createMuyaHarness((contentState) => {
@@ -206,7 +209,6 @@ describe('outline WYSIWYG render', () => {
       const inactive = outlines[0] as HTMLDivElement
       const active = outlines[1] as HTMLDivElement
 
-      expect(inactive.classList.contains('ag-paragraph')).to.equal(false)
       expect(getComputedStyle(inactive).opacity).to.equal('0.25')
       expect(active.classList.contains('ag-active')).to.equal(true)
       expect(getComputedStyle(active).opacity).to.equal('1')

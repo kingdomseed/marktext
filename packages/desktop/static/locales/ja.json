@@ -452,7 +452,7 @@
         "frontmatterType": "フロントマターのタイプ",
         "superSubScript": "Pandocのmarkdown拡張上付き文字と下付き文字を有効にする",
         "footnote": "Pandocのmarkdown拡張脚注を有効にする",
-        "outlineBlocksEnabled": "学術スタイルのアウトラインブロックを有効にする（ローマ数字/英字/数字の階層、Tabによるブロック単位のインデント）",
+        "outlineBlocksEnabled": "アウトラインブロックを有効化",
         "isHtmlEnabled": "HTMLレンダリングを有効にする",
         "isGitlabCompatibilityEnabled": "GitLab互換モードを有効にする",
         "sequenceTheme": "シーケンス図のテーマ",
@@ -746,7 +746,6 @@
         "superSubScript": "上付き/下付き文字",
         "footnote": "脚注",
         "outlineBlocksEnabled": "アウトラインブロック",
-        "outlineBlocksEnabledNotes": "セッション中に有効にしても、開いているドキュメントは再インポートされません。セッション中に無効にしても、既存のアウトライン項目は編集可能なままです。",
         "isHtmlEnabled": "HTML有効",
         "isGitlabCompatibilityEnabled": "GitLab互換性",
         "sequenceTheme": "シーケンステーマ",
@@ -968,6 +967,7 @@
       "horizontalLine": "水平線",
       "frontMatter": "フロントマター",
       "resetParagraph": "段落をリセット",
+      "restartOutlineGroup": "アウトラインを再開",
       "mathBlock": "数式ブロック",
       "horizontalRule": "水平線"
     },
@@ -1283,7 +1283,7 @@
     "heading6": "見出し6",
     "hr": "水平線",
     "outlineItem": "アウトライン項目",
-    "newOutlineGroup": "新しいアウトライングループ"
+    "newOutlineGroup": "新しいアウトライン"
   },
   "editor": {
     "image": {

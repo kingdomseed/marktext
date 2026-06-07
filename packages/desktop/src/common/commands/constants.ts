@@ -71,6 +71,7 @@ const COMMANDS = Object.freeze({
   PARAGRAPH_ORDERED_LIST: 'paragraph.order-list',
   PARAGRAPH_PARAGRAPH: 'paragraph.paragraph',
   PARAGRAPH_QUOTE_BLOCK: 'paragraph.quote-block',
+  PARAGRAPH_RESTART_OUTLINE_GROUP: 'paragraph.restart-outline-group',
   PARAGRAPH_TABLE: 'paragraph.table',
   PARAGRAPH_TASK_LIST: 'paragraph.task-list',
   PARAGRAPH_INCREASE_HEADING: 'paragraph.upgrade-heading',

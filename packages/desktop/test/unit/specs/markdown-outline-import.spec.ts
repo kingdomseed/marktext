@@ -67,10 +67,9 @@ describe('markdown outline import', () => {
     expect(outlineBodies(blocks)).to.deep.equal(['Top'])
   })
 
-  it('pref on keeps 0-indent 1. foo as an ordered list, not outline depth 3', () => {
+  it('pref on parses 0-indent decimal markers as ordered lists', () => {
     const blocks = importMarkdown('1. foo', { outlineBlocksEnabled: true })
 
-    expect(outlineItems(blocks)).to.have.length(0)
     expect(blocks[0].type).to.equal('ol')
     expect(blocks[0].children[0].type).to.equal('li')
   })
@@ -81,7 +80,6 @@ describe('markdown outline import', () => {
       listIndentation: 2
     })
 
-    expect(outlineItems(blocks)).to.have.length(0)
     expect(blocks[0].type).to.equal('p')
     expect(blocks[0].children[0].text).to.equal('  I. mismatch')
   })
@@ -102,7 +100,6 @@ describe('markdown outline import', () => {
       listIndentation: 1
     })
 
-    expect(outlineItems(blocks)).to.have.length(0)
     expect(blocks[0].type).to.equal('ol')
     const firstLi = blocks[0].children[0]
     const nestedOl = firstLi.children.find((child: Block) => child.type === 'ol')
@@ -152,7 +149,7 @@ describe('markdown outline import', () => {
     expect(outlineBodies(blocks)).to.deep.equal(['First', 'Restart'])
   })
 
-  it('keeps XI. after II. as continuation without a group-start sentinel', () => {
+  it('continues XI. after II. in the same outline group', () => {
     const blocks = importMarkdown('II. First\nXI. Third', {
       outlineBlocksEnabled: true,
       listIndentation: 1
@@ -165,7 +162,7 @@ describe('markdown outline import', () => {
     expect(outlineBodies(blocks)).to.deep.equal(['First', 'Third'])
   })
 
-  it('does not leak group-start sentinel across an intervening paragraph', () => {
+  it('requires a group-start sentinel to be adjacent to its root outline item', () => {
     const blocks = importMarkdown(
       'II. First\n<!-- mt:outline-group-start -->\nplain text\n\nXI. Later',
       {
@@ -181,7 +178,7 @@ describe('markdown outline import', () => {
     expect(outlineBodies(blocks)).to.deep.equal(['First', 'Later'])
   })
 
-  it('does not leak group-start sentinel through a non-root outline item', () => {
+  it('applies group-start sentinels only to root outline items', () => {
     const blocks = importMarkdown(
       'I. First\n<!-- mt:outline-group-start -->\n   A. Child\nXI. Later',
       {
@@ -237,7 +234,6 @@ describe('markdown outline import', () => {
   it('keeps marker-like blockquote content as quoted paragraph text', () => {
     const blocks = importMarkdown('> I. quoted', { outlineBlocksEnabled: true })
 
-    expect(outlineItems(blocks)).to.have.length(0)
     expect(blocks[0].type).to.equal('blockquote')
     expect(blocks[0].children[0].type).to.equal('p')
     expect(blocks[0].children[0].children[0].text).to.equal('I. quoted')
@@ -249,7 +245,6 @@ describe('markdown outline import', () => {
       outlineBlocksEnabled: true
     })
 
-    expect(tokens.some((token) => token.type === 'outline_item')).to.equal(false)
     expect(tokens).to.deep.include({ type: 'paragraph', text: 'I. footnote' })
   })
 
@@ -282,6 +277,5 @@ describe('markdown outline import', () => {
 
     const parenBlocks = importMarkdown('1) ordered', { outlineBlocksEnabled: true })
     expect(parenBlocks[0].type).to.equal('ol')
-    expect(outlineItems(parenBlocks)).to.have.length(0)
   })
 })

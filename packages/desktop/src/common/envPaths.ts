@@ -27,7 +27,7 @@ class EnvPaths {
 
     this._dataCenterPath = userDataPath
 
-    this._preferencesFilePath = path.join(this._preferencesPath, 'preference.json')
+    this._preferencesFilePath = path.join(this._preferencesPath, 'preferences.json')
   }
 
   get electronUserDataPath(): string {

@@ -12,7 +12,7 @@
 2. **Slice 2:** Shift+Tab on depth 2 → depth 1
 3. **Slice 3:** Tab with non-outline `p` between siblings — attaches under correct **implicit parent** (not merely `preSibling`)
 4. **Slice 4:** Reparenting cascade — contiguous same-depth followers become children (AR-1)
-5. **Slice 5:** After indent, remaining siblings at old depth renumber (`I.` → `II.`, etc.)
+5. **Slice 5:** After indent, remaining same-depth siblings renumber (`I.` → `II.`, etc.)
 6. **Slice 6:** Depth 7 Tab no-op; Shift+Tab at depth 1 no-op
 7. **Slice 7:** Outline branches precede `insertTab`, code-block Shift+Tab unindent, format-end Tab, table cell jump
 

@@ -346,6 +346,12 @@ const commands: CommandDescriptor[] = [
     }
   },
   {
+    id: 'paragraph.restart-outline-group',
+    execute: async() => {
+      focusEditorAndExecute(() => bus.emit('paragraph', 'restart-outline-group'))
+    }
+  },
+  {
     id: 'paragraph.paragraph',
     execute: async() => {
       focusEditorAndExecute(() => bus.emit('paragraph', 'paragraph'))

@@ -50,15 +50,35 @@ process.on('exit', () => {
 export interface LaunchResult {
   app: ElectronApplication
   page: Page
+  userDataDir: string
 }
 
 export interface LaunchOptions {
   // When true, sets MARKTEXT_ERROR_INTERACTION=1 in the launch env so
   // src/main/exceptionHandler.ts suppresses the modal "Unexpected error"
-  // dialog. Only crash-guard specs that explicitly call expectNoRendererErrors
-  // should opt in — otherwise existing specs would silently ignore renderer
-  // exceptions that previously surfaced as a dialog (a hidden regression risk).
+  // dialog. Crash-guard specs opt in so Playwright can observe renderer errors.
   suppressErrorDialog?: boolean
+  // Caller-provided directories are treated as caller-owned and are not
+  // automatically removed by launchElectron.
+  userDataDir?: string
+  preferences?: Record<string, unknown>
+}
+
+/**
+ * Write electron-store preferences before the first app launch.
+ * File name is `preferences.json` under the user-data directory.
+ */
+export const seedPreferences = (
+  userDataDir: string,
+  overrides: Record<string, unknown> = {}
+): void => {
+  const staticPath = path.join(projectRoot, 'static/preference.json')
+  const defaults = JSON.parse(fs.readFileSync(staticPath, 'utf-8')) as Record<string, unknown>
+  fs.mkdirSync(userDataDir, { recursive: true })
+  fs.writeFileSync(
+    path.join(userDataDir, 'preferences.json'),
+    JSON.stringify(Object.assign({}, defaults, overrides))
+  )
 }
 
 export const launchElectron = async(
@@ -69,7 +89,10 @@ export const launchElectron = async(
   const executablePath = getElectronPath()
   // Pass project root as entry so Electron reads package.json and getAppPath() returns project root.
   // Passing out/main/index.js directly bypasses package.json and breaks __static path resolution.
-  const userDataDir = trackTempDir(getTempPath())
+  const userDataDir = options.userDataDir ?? trackTempDir(getTempPath())
+  if (options.preferences) {
+    seedPreferences(userDataDir, options.preferences)
+  }
   const args = [projectRoot, '--user-data-dir', userDataDir].concat(userArgs)
   const env: Record<string, string> = {}
   for (const [k, v] of Object.entries(process.env)) if (v !== undefined) env[k] = v
@@ -86,7 +109,7 @@ export const launchElectron = async(
   const page = await app.firstWindow()
   await page.waitForLoadState('domcontentloaded')
   await new Promise((resolve) => setTimeout(resolve, 500))
-  return { app, page }
+  return { app, page, userDataDir }
 }
 
 // Capture renderer-process errors that would otherwise pop the "Unexpected
@@ -342,14 +365,19 @@ export const launchWithDoc = async(
   relativeFixture: string,
   options: LaunchOptions = {}
 ): Promise<LaunchResult> => {
-  const { app, page } = await launchElectron([relativeFixture], options)
+  const { app, page, userDataDir } = await launchElectron([relativeFixture], options)
   await waitForEditor(page)
   await waitForMenuReady(app)
-  return { app, page }
+  return { app, page, userDataDir }
 }
 
 export interface LaunchWithMarkdownResult extends LaunchResult {
   filePath: string
+}
+
+export interface OutlineItemSnapshot {
+  depth: string | null
+  marker: string | null
 }
 
 export const launchWithMarkdown = async(
@@ -357,10 +385,99 @@ export const launchWithMarkdown = async(
   options: LaunchOptions = {}
 ): Promise<LaunchWithMarkdownResult> => {
   const filePath = writeTempMarkdown(markdown)
-  const { app, page } = await launchElectron([filePath], options)
+  const { app, page, userDataDir } = await launchElectron([filePath], options)
   await waitForEditor(page)
   await waitForMenuReady(app)
-  return { app, page, filePath }
+  return { app, page, filePath, userDataDir }
+}
+
+export const relaunchDocument = async(
+  userDataDir: string,
+  filePath: string,
+  options: LaunchOptions = {}
+): Promise<LaunchResult> => {
+  const launchOptions = Object.assign({}, options, { userDataDir })
+  const { app, page } = await launchElectron([filePath], launchOptions)
+  await waitForEditor(page)
+  await waitForMenuReady(app)
+  return { app, page, userDataDir }
+}
+
+export const saveDocument = async(page: Page, app: ElectronApplication): Promise<void> => {
+  await sendIpcToRenderer(app, 'mt::editor-ask-file-save')
+  await page.waitForTimeout(1000)
+}
+
+export const waitForDiskMarkdown = async(
+  filePath: string,
+  predicate: (markdown: string) => boolean,
+  timeoutMs = 5000
+): Promise<string> => {
+  const deadline = Date.now() + timeoutMs
+  let markdown = ''
+
+  while (Date.now() < deadline) {
+    markdown = readDiskMarkdown(filePath)
+    if (predicate(markdown)) {
+      return markdown
+    }
+    await new Promise((resolve) => setTimeout(resolve, 200))
+  }
+
+  throw new Error(
+    `Timed out after ${timeoutMs}ms waiting for disk markdown at ${filePath}. ` +
+      `Last content:\n${markdown}`
+  )
+}
+
+export const readDiskMarkdown = (filePath: string): string => {
+  return fs.readFileSync(filePath, 'utf-8')
+}
+
+export const insertOutlineViaQuickInsert = async(page: Page): Promise<void> => {
+  await placeCaretInEditor(page)
+  await page.keyboard.type('@')
+  await page.waitForSelector('.ag-quick-insert', { state: 'attached', timeout: 5000 })
+  await page.click('.ag-quick-insert [data-label="outline-item"]')
+  await page.waitForSelector('.editor-component .ag-outline-item', {
+    state: 'attached',
+    timeout: 5000
+  })
+}
+
+export const focusOutlineBody = async(page: Page, itemIndex = 0): Promise<void> => {
+  await page.evaluate((index) => {
+    const items = document.querySelectorAll('.editor-component .ag-outline-item')
+    const item = items[index] as HTMLElement | undefined
+    const span = item?.querySelector('span.ag-paragraph') as HTMLElement | null
+    if (!span) return
+    const range = document.createRange()
+    range.selectNodeContents(span)
+    range.collapse(false)
+    const sel = window.getSelection()
+    if (!sel) return
+    sel.removeAllRanges()
+    sel.addRange(range)
+    document.dispatchEvent(new Event('selectionchange'))
+  }, itemIndex)
+  await page.waitForTimeout(150)
+}
+
+export const typeInOutlineBody = async(page: Page, text: string, itemIndex = 0): Promise<void> => {
+  await focusOutlineBody(page, itemIndex)
+  await page.keyboard.type(text, { delay: 0 })
+  await page.waitForTimeout(200)
+}
+
+export const getOutlineItemsInEditor = async(page: Page): Promise<OutlineItemSnapshot[]> => {
+  return page.evaluate(() => {
+    return Array.from(document.querySelectorAll('.editor-component .ag-outline-item')).map(
+      (element) => ({
+        depth: element.getAttribute('data-depth'),
+        marker: element.querySelector('.ag-outline-marker')?.textContent?.trim() || null
+      })
+    )
+  })
 }
 
 export const sendIpcToRenderer = async(

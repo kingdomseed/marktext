@@ -133,7 +133,7 @@ const outlineCtrl = (ContentState) => {
   }
 
   /**
-   * Change an outline item's depth and apply the AR-1 reparenting cascade.
+   * Change an outline item's depth and cascade dependent outline items.
    *
    * Existing descendants shift with the moved item. Following contiguous
    * same-depth siblings become children of the moved item at new depth + 1,
@@ -179,8 +179,8 @@ const outlineCtrl = (ContentState) => {
         break
       }
 
-      // Same-depth followers become children of the moved item. For outdent,
-      // that means a zero depth delta: they stay at oldDepth under a shallower parent.
+      // Same-depth followers become children of the moved item. During outdent,
+      // they keep their depth while the moved item becomes their shallower parent.
       descendantDepthDelta = deltaDepth + 1
       movedItems.push({ item: block, depthDelta: descendantDepthDelta })
     }
@@ -203,28 +203,38 @@ const outlineCtrl = (ContentState) => {
    * Indent the outline item at the cursor one depth level.
    *
    * @param {Object} [item] Outline item to indent.
-   * @returns {Object|boolean} Render result, or false when no change happened.
+   * @returns {boolean} True when the item changed depth.
    */
   ContentState.prototype.indentOutlineItem = function(item = this.getOutlineItemAtCursor()) {
     if (!item || item.depth >= 7) {
       return false
     }
 
-    return this.reparentingCascade(item, 1) ? this.partialRender() : false
+    if (!this.reparentingCascade(item, 1)) {
+      return false
+    }
+
+    this.partialRender()
+    return true
   }
 
   /**
    * Outdent the outline item at the cursor one depth level.
    *
    * @param {Object} [item] Outline item to outdent.
-   * @returns {Object|boolean} Render result, or false when no change happened.
+   * @returns {boolean} True when the item changed depth.
    */
   ContentState.prototype.outdentOutlineItem = function(item = this.getOutlineItemAtCursor()) {
     if (!item || item.depth <= 1) {
       return false
     }
 
-    return this.reparentingCascade(item, -1) ? this.partialRender() : false
+    if (!this.reparentingCascade(item, -1)) {
+      return false
+    }
+
+    this.partialRender()
+    return true
   }
 
   /**
@@ -552,14 +562,6 @@ const outlineCtrl = (ContentState) => {
   }
 
   /**
-   * Dispatch an outline-specific Backspace action.
-   *
-   * @param {Object} outlineItem Outline item at the cursor.
-   * @param {string} info Backspace action kind.
-   * @param {Object} [priorSibling] Adjacent sibling for merge actions.
-   * @returns {Object|boolean} Render result, or false when no action matched.
-   */
-  /**
    * Find the nearest preceding outline item for Turn Into depth continuation.
    *
    * @param {Object} referenceBlock Block being converted or inserted near.
@@ -597,7 +599,7 @@ const outlineCtrl = (ContentState) => {
    *
    * @param {Object} item Outline item to restart.
    * @param {number} [start=1] Restart marker index for depth-1 Roman marker.
-   * @returns {Object} Render result.
+   * @returns {boolean} True when the group was restarted.
    */
   ContentState.prototype.restartOutlineGroup = function(item, start = 1) {
     if (!item || item.type !== 'outline-item' || item.depth !== 1) {
@@ -606,7 +608,9 @@ const outlineCtrl = (ContentState) => {
 
     item.groupStart = true
     item.start = start
-    return this.partialRender()
+    this.partialRender()
+    this.muya.dispatchChange?.()
+    return true
   }
 
   /**
@@ -818,6 +822,14 @@ const outlineCtrl = (ContentState) => {
     return this.partialRender()
   }
 
+  /**
+   * Dispatch an outline-specific Backspace action.
+   *
+   * @param {Object} outlineItem Outline item at the cursor.
+   * @param {string} info Backspace action kind.
+   * @param {Object} [priorSibling] Adjacent sibling for merge actions.
+   * @returns {Object|boolean} Render result, or false when no action matched.
+   */
   ContentState.prototype.handleOutlineBackspace = function(outlineItem, info, priorSibling) {
     switch (info) {
       case 'DELETE':

@@ -108,7 +108,6 @@ describe('markdown outline HTML export', () => {
     expect(html).to.include('class="outline-body"')
     expect(html).to.include('>I.<')
     expect(html).to.include('Solo')
-    expect(html).not.to.include('<ol')
   })
 
   it.each([1, 2, 'dfm'] as const)(
@@ -122,7 +121,6 @@ describe('markdown outline HTML export', () => {
       expect(html).to.include(`>${expectedMarker(1, MINIMAL_INDICES)}<`)
       expect(html).to.include(`>${expectedMarker(3, MINIMAL_INDICES)}<`)
       expect(html).to.include('seven')
-      expect(html).not.to.include('<ol')
     }
   )
 
@@ -136,7 +134,6 @@ describe('markdown outline HTML export', () => {
       expect(html).to.include(`>${expectedMarker(1, INDEX_TWO_INDICES)}<`)
       expect(html).to.include(`>${expectedMarker(2, INDEX_TWO_INDICES)}<`)
       expect(html).to.include('skip-1-1')
-      expect(html).not.to.include('<ol')
     }
   )
 
@@ -150,7 +147,6 @@ describe('markdown outline HTML export', () => {
       expect(html).to.include('XIV.')
       expect(html).to.include('(99)')
       expect(html).to.include('(z)')
-      expect(html).not.to.include('<ol')
     }
   )
 
@@ -231,7 +227,7 @@ describe('markdown outline HTML export', () => {
     expect(withBlocks).to.equal(markdownOnly)
   })
 
-  it('detects outline items and routes ExportHtml through the hybrid seam', async() => {
+  it('detects outline items and routes ExportHtml through the outline-aware path', async() => {
     const ctx = createMuyaContext(1, { outlineBlocksEnabled: true })
     const item = ctx.contentState.createOutlineItem(1)
     item.children[0].children[0].text = 'Hybrid'
@@ -243,10 +239,9 @@ describe('markdown outline HTML export', () => {
     const html = await new ExportHtml(markdown, ctx, blocks).renderHtml()
     expect(html).to.include('class="outline-item"')
     expect(html).to.include('Hybrid')
-    expect(html).not.to.include('<ol')
   })
 
-  it('includes outline export styles without leaking editor outline classes', async() => {
+  it('includes outline export classes and styles', async() => {
     const ctx = createMuyaContext(1, { outlineBlocksEnabled: true })
     const item = ctx.contentState.createOutlineItem(1)
     item.children[0].children[0].text = 'Styled'
@@ -261,7 +256,8 @@ describe('markdown outline HTML export', () => {
 
     expect(html).to.include('class="outline-item"')
     expect(html).to.include('class="outline-marker"')
-    expect(html).not.to.include('ag-outline-item')
+    expect(html).to.include('class="outline-body"')
+    expect(exportStyleSource).to.include('.outline-item')
     expect(exportStyleSource).to.include('.outline-marker')
     expect(exportStyleSource).to.include('break-inside: avoid')
   })

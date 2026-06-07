@@ -114,6 +114,10 @@ export const quoteBlock = (win: Win): void => {
   transformEditorElement(win, 'blockquote')
 }
 
+export const restartOutlineGroup = (win: Win): void => {
+  transformEditorElement(win, 'restart-outline-group')
+}
+
 export const table = (win: Win): void => {
   transformEditorElement(win, 'table')
 }
@@ -146,6 +150,7 @@ export const loadParagraphCommands = (commandManager: CommandManager): void => {
   commandManager.add(COMMANDS.PARAGRAPH_ORDERED_LIST, orderedList)
   commandManager.add(COMMANDS.PARAGRAPH_PARAGRAPH, paragraph)
   commandManager.add(COMMANDS.PARAGRAPH_QUOTE_BLOCK, quoteBlock)
+  commandManager.add(COMMANDS.PARAGRAPH_RESTART_OUTLINE_GROUP, restartOutlineGroup)
   commandManager.add(COMMANDS.PARAGRAPH_TABLE, table)
   commandManager.add(COMMANDS.PARAGRAPH_TASK_LIST, taskList)
   commandManager.add(COMMANDS.PARAGRAPH_INCREASE_HEADING, increaseHeading)

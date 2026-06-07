@@ -129,7 +129,7 @@ All seven decisions locked. See **Locked decisions** below.
 | Implementation issue 07 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/7 → `310d022` |
 | Implementation issue 08 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/8 → `947a8e3` |
 | Implementation issue 09 | ✅ Merged: https://github.com/kingdomseed/marktext/pull/9 → `27032b1` |
-| Implementation issue 10 | ⏭️ **Next** — E2E + upstream PR prep |
+| Implementation issue 10 | 🔄 Branch `feat/issue-10-e2e-upstream-prep` — ready for PR |
 
 ---
 
@@ -303,9 +303,9 @@ Work **in order**. After each item: update PRD (+ `CONTEXT.md` or ADR if glossar
 
 ## Next step
 
-**Issue 10** (AFK + HITL): E2E primary flow + upstream PR prep — per `.scratch/outline-blocks/issues/10-e2e-upstream-pr-prep.md`.
+**Issue 10** (HITL tail): Screen recordings + upstream PR to `marktext/marktext` `develop` with `Closes #4379`.
 
-Issues 01–09 merged on `feat/outline-editing-setup` (`27032b1`). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
+Issues 01–10 implemented on `feat/outline-editing-setup` (issue 10 PR pending). Issue 00 upstream suggestion filed ([#4379](https://github.com/marktext/marktext/issues/4379)).
 
 ## Implementation order
 
