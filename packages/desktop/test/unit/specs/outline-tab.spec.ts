@@ -168,7 +168,7 @@ describe('outline Tab / Shift+Tab', () => {
     expect(outlineMarkers(contentState)).to.deep.equal(['A.', '1.', '2.', 'a.'])
   })
 
-  it('Shift+Tab cascade preserves descendants and absorbs following old-depth siblings', () => {
+  it('Shift+Tab cascade preserves descendants and absorbs same-depth followers', () => {
     const contentState = createContentState((cs) => {
       const root = cs.createOutlineItem(1)
       const firstChild = cs.createOutlineItem(2)
@@ -183,7 +183,7 @@ describe('outline Tab / Shift+Tab', () => {
     expect(outlineMarkers(contentState)).to.deep.equal(['I.', 'II.', 'A.', 'B.'])
   })
 
-  it('renumbers non-contiguous followers at the old depth after indent', () => {
+  it('renumbers non-contiguous same-depth followers after indent', () => {
     const contentState = createContentState((cs) => {
       const first = cs.createOutlineItem(1)
       const second = cs.createOutlineItem(1)
@@ -246,7 +246,7 @@ describe('outline Tab / Shift+Tab', () => {
     expect(contentState.getBlocks()[0].children[0].children[0].text).to.equal('Body')
   })
 
-  it('tabHandler Tab at depth 7 is a no-op instead of inserting spaces', () => {
+  it('tabHandler Tab at depth 7 is a no-op at max depth', () => {
     const contentState = createContentState((cs) => {
       const item = cs.createOutlineItem(7)
       const bodyKey = item.children[0].children[0].key
@@ -270,7 +270,7 @@ describe('outline Tab / Shift+Tab', () => {
     expect(contentState.getBlocks()[0].children[0].children[0].text).to.equal('Body')
   })
 
-  it('tabHandler indents outline without inserting spaces into body text', () => {
+  it('tabHandler indents the outline item at the cursor', () => {
     const contentState = createContentState((cs) => {
       const item = cs.createOutlineItem(1)
       const bodyKey = item.children[0].children[0].key
@@ -323,7 +323,7 @@ describe('outline Tab / Shift+Tab', () => {
     expect(dispatchChange).toHaveBeenCalledTimes(1)
   })
 
-  it('tabHandler Shift+Tab at depth 1 is a no-op instead of indenting', () => {
+  it('tabHandler Shift+Tab at depth 1 is a no-op at root depth', () => {
     const contentState = createContentState((cs) => {
       const item = cs.createOutlineItem(1)
       const bodyKey = item.children[0].children[0].key

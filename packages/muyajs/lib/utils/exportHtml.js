@@ -193,7 +193,7 @@ class ExportHtml {
   }
 
   /**
-   * Render HTML by interleaving block-tree outline items with marked() fragments.
+   * Render HTML by interleaving outline items with marked() fragments.
    *
    * @param {Object[]} blocks Top-level document blocks.
    * @param {string} [toc] Optional table of contents HTML.

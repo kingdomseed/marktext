@@ -164,7 +164,7 @@ Lexer.prototype.token = function(
       }
     }
 
-    // outline (before indented code — AR-2 / issue 06 slice 7)
+    // Check outline markers before indented code blocks.
     if (outlineBlocksEnabled && top && rootDocument) {
       cap = matchOutlineGroupStart(src)
       if (cap) {

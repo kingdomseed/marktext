@@ -56,9 +56,7 @@ export interface LaunchResult {
 export interface LaunchOptions {
   // When true, sets MARKTEXT_ERROR_INTERACTION=1 in the launch env so
   // src/main/exceptionHandler.ts suppresses the modal "Unexpected error"
-  // dialog. Only crash-guard specs that explicitly call expectNoRendererErrors
-  // should opt in — otherwise existing specs would silently ignore renderer
-  // exceptions that previously surfaced as a dialog (a hidden regression risk).
+  // dialog. Crash-guard specs opt in so Playwright can observe renderer errors.
   suppressErrorDialog?: boolean
   // Caller-provided directories are treated as caller-owned and are not
   // automatically removed by launchElectron.

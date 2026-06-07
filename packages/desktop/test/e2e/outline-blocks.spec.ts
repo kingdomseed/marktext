@@ -77,7 +77,6 @@ test.describe('Outline blocks primary flow', () => {
       const restored = await getOutlineItemsInEditor(page)
       expect(restored[0]?.depth).toBe('2')
       expect(restored[0]?.marker).toBe('A.')
-      expect(restored[0]?.marker).not.toBe('I.')
     } finally {
       if (app) await app.close()
     }

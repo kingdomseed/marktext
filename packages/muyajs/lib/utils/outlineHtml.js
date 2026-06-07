@@ -1,7 +1,7 @@
 import { escapeHTML } from '../utils'
 
 /**
- * Render one outline item as flat export HTML (not nested lists).
+ * Render one outline item as flat export HTML.
  *
  * @param {Object} block Outline item block.
  * @param {{marker: string, indent: number, siblingIndex: number}} renderMeta Precomputed render metadata.

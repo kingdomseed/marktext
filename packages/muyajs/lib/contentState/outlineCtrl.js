@@ -133,7 +133,7 @@ const outlineCtrl = (ContentState) => {
   }
 
   /**
-   * Change an outline item's depth and apply the AR-1 reparenting cascade.
+   * Change an outline item's depth and cascade dependent outline items.
    *
    * Existing descendants shift with the moved item. Following contiguous
    * same-depth siblings become children of the moved item at new depth + 1,
@@ -179,8 +179,8 @@ const outlineCtrl = (ContentState) => {
         break
       }
 
-      // Same-depth followers become children of the moved item. For outdent,
-      // that means a zero depth delta: they stay at oldDepth under a shallower parent.
+      // Same-depth followers become children of the moved item. During outdent,
+      // they keep their depth while the moved item becomes their shallower parent.
       descendantDepthDelta = deltaDepth + 1
       movedItems.push({ item: block, depthDelta: descendantDepthDelta })
     }
@@ -562,14 +562,6 @@ const outlineCtrl = (ContentState) => {
   }
 
   /**
-   * Dispatch an outline-specific Backspace action.
-   *
-   * @param {Object} outlineItem Outline item at the cursor.
-   * @param {string} info Backspace action kind.
-   * @param {Object} [priorSibling] Adjacent sibling for merge actions.
-   * @returns {Object|boolean} Render result, or false when no action matched.
-   */
-  /**
    * Find the nearest preceding outline item for Turn Into depth continuation.
    *
    * @param {Object} referenceBlock Block being converted or inserted near.
@@ -830,6 +822,14 @@ const outlineCtrl = (ContentState) => {
     return this.partialRender()
   }
 
+  /**
+   * Dispatch an outline-specific Backspace action.
+   *
+   * @param {Object} outlineItem Outline item at the cursor.
+   * @param {string} info Backspace action kind.
+   * @param {Object} [priorSibling] Adjacent sibling for merge actions.
+   * @returns {Object|boolean} Render result, or false when no action matched.
+   */
   ContentState.prototype.handleOutlineBackspace = function(outlineItem, info, priorSibling) {
     switch (info) {
       case 'DELETE':
