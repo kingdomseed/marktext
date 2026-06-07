@@ -15,7 +15,7 @@
 1. **Tracer:** `MUYA_DEFAULT_OPTION.outlineBlocksEnabled === false` — `packages/desktop/test/unit/specs/outline-preference.spec.ts`
 2. **Slice 2:** `setOptions({ outlineBlocksEnabled: true }, true)` updates `muya.options` without re-parsing open document (blocks unchanged)
 3. **Slice 3:** `schema.json` contains `outlineBlocksEnabled` boolean default `false`
-4. **Slice 4:** bundled locale keys under Markdown → Extensions mirror `footnote` / `superSubScript` pattern
+4. **Slice 4:** bundled locale labels under Markdown → Extensions mirror `footnote` / `superSubScript` pattern
 
 ## What to build
 
@@ -29,13 +29,13 @@ Add opt-in `outlineBlocksEnabled` preference (default off) and wire it to the pr
 
 **Out of scope (issue 08):** hide `@` quick-insert and Turn Into when pref off (AR-5 seam 2).
 
-Pref description must document footnote-mirror semantics: enable mid-session does not re-import open doc; disable mid-session keeps existing outline items editable.
+Preference UI copy must stay concise and follow nearby Markdown extension labels. Footnote-mirror semantics are covered by behavior tests and implementation docs, not by a long preferences note.
 
 ## Acceptance criteria
 
 - [x] TDD tracer tests pass in `outline-preference.spec.ts`
 - [x] `outlineBlocksEnabled` in preference schema + default `false` in `preference.json`
-- [x] Toggle in Markdown settings section with bundled locale labels and descriptions
+- [x] Toggle in Markdown settings section with bundled locale labels
 - [x] `editor.vue` watch → `setOptions({ outlineBlocksEnabled }, true)` on change and in initial options block
 - [x] `pnpm run lint` passes
 

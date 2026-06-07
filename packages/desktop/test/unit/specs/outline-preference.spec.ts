@@ -39,26 +39,21 @@ describe('outline preference', () => {
     const schema = JSON.parse(readFileSync(schemaPath, 'utf-8'))
 
     expect(schema.outlineBlocksEnabled).to.deep.equal({
-      description: 'Markdown-Enable academic-style outline blocks (Roman/letter/decimal hierarchy with block-level Tab indent).',
+      description: 'Markdown-Enable outline blocks.',
       type: 'boolean',
       default: false
     })
   })
 
-  it('en.json defines outlineBlocksEnabled keys under Markdown extensions', () => {
+  it('en.json defines concise outline preference copy', () => {
     const en = JSON.parse(readFileSync(enLocalePath, 'utf-8'))
     const extensions = en.preferences.markdown.extensions
 
     expect(extensions.outlineBlocksEnabled).to.equal('Outline blocks')
-    expect(extensions.outlineBlocksEnabledNotes).to.equal(
-      'Enabling mid-session does not re-import the open document. Disabling mid-session keeps existing outline items editable.'
-    )
-    expect(en.preferences.search.items.outlineBlocksEnabled).to.equal(
-      'Enable academic-style outline blocks (Roman/letter/decimal hierarchy with block-level Tab indent)'
-    )
+    expect(en.preferences.search.items.outlineBlocksEnabled).to.equal('Enable outline blocks')
   })
 
-  it('all source locale files define outlineBlocksEnabled keys', () => {
+  it('all source locale files define outline preference labels', () => {
     const localeFiles = readdirSync(localesPath)
       .filter(file => file.endsWith('.json') && !file.endsWith('.min.json'))
 
@@ -69,8 +64,6 @@ describe('outline preference', () => {
 
       expect(extensions.outlineBlocksEnabled, file).to.be.a('string')
       expect(extensions.outlineBlocksEnabled, file).to.not.equal('')
-      expect(extensions.outlineBlocksEnabledNotes, file).to.be.a('string')
-      expect(extensions.outlineBlocksEnabledNotes, file).to.not.equal('')
       expect(searchItems.outlineBlocksEnabled, file).to.be.a('string')
       expect(searchItems.outlineBlocksEnabled, file).to.not.equal('')
     })
@@ -100,5 +93,6 @@ describe('outline preference', () => {
     const locale = JSON.parse(readFileSync(resolve(localesPath, 'en.json'), 'utf-8'))
 
     expect(locale.frontMenu.newOutlineGroup).to.equal('New Outline')
+    expect(locale.commands.paragraph.restartOutlineGroup).to.equal('Restart Outline')
   })
 })

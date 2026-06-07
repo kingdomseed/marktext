@@ -65,7 +65,6 @@
         />
         <bool
           :description="t('preferences.markdown.extensions.outlineBlocksEnabled')"
-          :notes="t('preferences.markdown.extensions.outlineBlocksEnabledNotes')"
           :bool="outlineBlocksEnabled"
           :on-change="(value) => onSelectChange('outlineBlocksEnabled', value)"
         />

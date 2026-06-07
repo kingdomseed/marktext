@@ -268,7 +268,7 @@
     "default": false
   },
   "outlineBlocksEnabled": {
-    "description": "Markdown-Enable academic-style outline blocks (Roman/letter/decimal hierarchy with block-level Tab indent).",
+    "description": "Markdown-Enable outline blocks.",
     "type": "boolean",
     "default": false
   },

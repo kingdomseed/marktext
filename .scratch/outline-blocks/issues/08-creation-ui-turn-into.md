@@ -14,7 +14,7 @@
 4. **Slice 4:** Turn Into outline → paragraph promotes children one depth level
 5. **Slice 5:** Turn Into outline ↔ list denied both directions
 6. **Slice 6:** Multiline selection with any outline item → Turn Into blocked
-7. **Slice 7:** **New outline group** calls `restartOutlineGroup()` → `groupStart: true` + `start` from restart marker (default position 1 unless e.g. `XI`)
+7. **Slice 7:** **New Outline** calls `restartOutlineGroup()` → `groupStart: true` + `start` from restart marker (default position 1 unless e.g. `XI`)
 8. **Slice 8:** Heading ↔ outline both directions
 9. **Slice 9:** Blockquote → outline and outline → blockquote (wrapper removed)
 10. **Slice 10:** Pref off → create paths hidden; **existing** outline item still editable
@@ -22,14 +22,14 @@
 ## Components
 
 - `packages/muyajs/lib/ui/quickInsert/config.js` + `index.js`
-- `packages/muyajs/lib/ui/frontMenu/config.js` + `index.js` — Turn Into + **New outline group**
+- `packages/muyajs/lib/ui/frontMenu/config.js` + `index.js` — Turn Into + **New Outline**
 - `packages/muyajs/lib/contentState/paragraphCtrl.js` — `handleOutlineMenu`, `isAllowedTransformation`, `getTypeFromBlock`
 - `packages/muyajs/lib/contentState/outlineCtrl.js` — `restartOutlineGroup(item)`
 - `packages/desktop/static/locales/en.json`
 
 ## What to build
 
-User-facing creation paths: `@` quick-insert, Turn Into submenu, **New outline group** action. Hide all when pref off. Full AR-8 matrix except list pivot (deny direct outline ↔ list).
+User-facing creation paths: `@` quick-insert, Turn Into submenu, **New Outline** action. Hide all when pref off. Full AR-8 matrix except list pivot (deny direct outline ↔ list).
 
 ## Acceptance criteria
 

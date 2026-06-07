@@ -66,7 +66,7 @@ const collectQuickInsertLabels = (outlineBlocksEnabled: boolean) => {
 }
 
 describe('outline UI gating and Turn Into', () => {
-  it('keeps restart outline group near Turn Into before destructive actions', () => {
+  it('keeps the new outline action near Turn Into before destructive actions', () => {
     const labels = (createMenu() as MenuEntry[]).map((item) => item.label)
 
     expect(labels.indexOf('new-outline-group')).to.equal(labels.indexOf('turnInto') + 1)
