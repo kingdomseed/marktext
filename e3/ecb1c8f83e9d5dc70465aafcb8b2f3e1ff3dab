@@ -1,0 +1,19 @@
+.gitignore
+  s_1f3264dd8c9678::t_8c3ecdf406792b 15
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "e3ecb1c8f83e9d5dc70465aafcb8b2f3e1ff3dab",
+  "prompts": {},
+  "sessions": {
+    "s_1f3264dd8c9678": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f5fa8-c55d-73d1-ac2a-9a7454462249",
+        "model": "gpt-5.6-sol"
+      },
+      "human_author": "Jason Holt <jason@jasonholtdigital.com>"
+    }
+  }
+}
